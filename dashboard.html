@@ -127,53 +127,64 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-init.js"></script>
   <script src="js/shared.js"></script>
   <script>
     renderLayout('dashboard');
     document.getElementById('today-date').textContent = formatDate() + ' · Durbanville, Cape Town';
 
-    // Render agent grid
-    const grid = document.getElementById('agent-grid');
-    grid.innerHTML = AGENTS.map(a => `
-      <div class="agent-card" onclick="window.location.href='agents/${a.slug}.html'">
-        <div class="agent-card-top">
-          <div class="agent-avatar ${a.cls}"><i class="fa-solid ${a.icon}"></i></div>
-          <div style="flex:1;min-width:0;">
-            <div class="agent-name">${a.name}</div>
-            <div class="agent-role">${a.role}</div>
-          </div>
-        </div>
-        <div class="agent-status-line">
-          <span class="status-dot ${a.status}"></span>
-          ${a.status === 'active' ? 'Active · ready for tasks' : 'Idle · standby'}
-        </div>
-        <a href="agents/${a.slug}.html" class="btn btn-outline btn-sm" style="align-self:flex-start;">
-          Open Agent <i class="fa-solid fa-arrow-right"></i>
-        </a>
-      </div>
-    `).join('');
-
-    // Activity feed
-    const activities = [
-      { agent: 'callie', icon: 'fa-envelope', text: '<strong>Callie</strong> triaged 12 emails — 3 flagged urgent, 1 emergency repair dispatched.', time: '8 min ago' },
-      { agent: 'ranker', icon: 'fa-magnifying-glass-chart', text: '<strong>Ranker</strong> published blog post: "CCTV Camera Setup in Century City — 2026 Guide".', time: '34 min ago' },
-      { agent: 'devon', icon: 'fa-code-branch', text: '<strong>Devon</strong> merged PR #42 — NEXUS VMS visitor pre-registration flow.', time: '1 hr ago' },
-      { agent: 'closer', icon: 'fa-file-pen', text: '<strong>Closer</strong> drafted commercial proposal for Century City CCTV Upgrade (R210,000).', time: '2 hr ago' },
-      { agent: 'pixel', icon: 'fa-image', text: '<strong>Pixel</strong> published 3 Facebook reels — smart home installation series.', time: '3 hr ago' },
-      { agent: 'nexus', icon: 'fa-brain', text: '<strong>Nexus Prime</strong> launched "Q3 Western Cape Expansion" campaign across 4 agents.', time: '5 hr ago' },
-      { agent: 'callie', icon: 'fa-phone', text: '<strong>Callie</strong> placed supplier call to Regal Distributors — confirmed 12x HiLook 4K cameras for delivery Thu.', time: '6 hr ago' },
-      { agent: 'devon', icon: 'fa-bug', text: '<strong>Devon</strong> resolved bug #128 — GSS-OS CRM lead-status sync issue.', time: '7 hr ago' }
-    ];
     const colorMap = { callie:'#06B6D4', ranker:'#8B5CF6', devon:'#10B981', closer:'#F59E0B', pixel:'#EC4899', nexus:'#1A3A5C' };
-    document.getElementById('activity-feed').innerHTML = `<div class="activity-feed">` + activities.map(a => `
-      <div class="activity-item">
-        <div class="activity-icon" style="background:${colorMap[a.agent]};"><i class="fa-solid ${a.icon}"></i></div>
-        <div class="activity-body">
-          <div class="activity-text">${a.text}</div>
-          <div class="activity-meta"><i class="fa-regular fa-clock"></i> ${a.time}</div>
-        </div>
-      </div>
-    `).join('') + `</div>`;
+
+    async function initPage() {
+      // Render agent grid from Firestore
+      try {
+        const agentsSnap = await db.collection('agents').get();
+        const grid = document.getElementById('agent-grid');
+        grid.innerHTML = agentsSnap.docs.map(doc => {
+          const a = doc.data();
+          return `
+          <div class="agent-card" onclick="window.location.href='agents/${a.slug}.html'">
+            <div class="agent-card-top">
+              <div class="agent-avatar ${a.cls}"><i class="fa-solid ${a.icon}"></i></div>
+              <div style="flex:1;min-width:0;">
+                <div class="agent-name">${a.name}</div>
+                <div class="agent-role">${a.role}</div>
+              </div>
+            </div>
+            <div class="agent-status-line">
+              <span class="status-dot ${a.status}"></span>
+              ${a.status === 'active' ? 'Active · ready for tasks' : 'Idle · standby'}
+            </div>
+            <a href="agents/${a.slug}.html" class="btn btn-outline btn-sm" style="align-self:flex-start;">
+              Open Agent <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>`;
+        }).join('');
+      } catch (err) {
+        console.error('Error loading agents:', err);
+      }
+
+      // Live activity feed from Firestore
+      db.collection('activities').orderBy('timestamp', 'desc').limit(8).onSnapshot(snapshot => {
+        const feedEl = document.getElementById('activity-feed');
+        if (!feedEl) return;
+        feedEl.innerHTML = `<div class="activity-feed">` + snapshot.docs.map(doc => {
+          const a = doc.data();
+          const timeStr = formatRelativeTime(a.timestamp);
+          return `
+          <div class="activity-item">
+            <div class="activity-icon" style="background:${colorMap[a.agent] || '#1A3A5C'};"><i class="fa-solid ${a.icon}"></i></div>
+            <div class="activity-body">
+              <div class="activity-text">${a.text}</div>
+              <div class="activity-meta"><i class="fa-regular fa-clock"></i> ${timeStr}</div>
+            </div>
+          </div>`;
+        }).join('') + `</div>`;
+      });
+    }
   </script>
 </body>
 </html>

@@ -173,7 +173,7 @@ function buildTopbar() {
         <div id="user-dropdown" class="topbar-dropdown" style="display:none;width:180px;right:0;">
           <div class="dropdown-body" style="padding:4px 0;">
             <a href="${root}settings.html" class="dropdown-link" id="user-link-settings"><i class="fa-solid fa-gear"></i> Settings</a>
-            <a href="${root}index.html" class="dropdown-link" style="color:var(--danger);border-top:1px solid var(--border-light);" id="user-link-signout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a>
+            <a href="#" onclick="handleSignOut(event)" class="dropdown-link" style="color:var(--danger);border-top:1px solid var(--border-light);" id="user-link-signout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out</a>
           </div>
         </div>
       </div>
@@ -301,17 +301,99 @@ function toggleUserDropdown(e) {
   }
 }
 
-function clearNotifications(e) {
-  e.stopPropagation();
-  const list = document.getElementById('notifications-list');
-  if (list) {
-    list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12.5px;">All caught up! No new notifications.</div>`;
-  }
-  const badge = document.getElementById('notifications-badge');
-  if (badge) {
-    badge.style.display = 'none';
+function formatRelativeTime(ts) {
+  if (!ts) return '';
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`;
+  return date.toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' });
+}
+
+function listenToNotifications() {
+  if (typeof db === 'undefined') return;
+  db.collection('notifications')
+    .orderBy('timestamp', 'desc')
+    .limit(10)
+    .onSnapshot(snapshot => {
+      const list = document.getElementById('notifications-list');
+      const badge = document.getElementById('notifications-badge');
+      if (!list) return;
+      
+      const docs = snapshot.docs;
+      const unreadCount = docs.filter(doc => doc.data().unread).length;
+      
+      if (badge) {
+        badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+      }
+      
+      if (docs.length === 0) {
+        list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12.5px;">All caught up! No new notifications.</div>`;
+        return;
+      }
+      
+      list.innerHTML = docs.map(doc => {
+        const data = doc.data();
+        const timeStr = formatRelativeTime(data.timestamp);
+        return `
+          <div class="notification-item ${data.unread ? 'unread' : ''}" onclick="markNotificationRead('${doc.id}', event)">
+            ${data.unread ? '<span class="dot"></span>' : ''}
+            <div>
+              <p>${data.text}</p>
+              <span>${timeStr}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }, err => {
+      console.error("Notifications listener error:", err);
+    });
+}
+
+async function markNotificationRead(id, e) {
+  if (e) e.stopPropagation();
+  if (typeof db === 'undefined') return;
+  try {
+    await db.collection('notifications').doc(id).update({ unread: false });
+  } catch (err) {
+    console.error("Error marking read:", err);
   }
 }
+
+async function clearNotifications(e) {
+  if (e) e.stopPropagation();
+  if (typeof db === 'undefined') return;
+  try {
+    const snapshot = await db.collection('notifications').where('unread', '==', true).get();
+    const batch = db.batch();
+    snapshot.forEach(doc => {
+      batch.update(doc.ref, { unread: false });
+    });
+    await batch.commit();
+  } catch (err) {
+    console.error("Error clearing notifications:", err);
+  }
+}
+
+function handleSignOut(event) {
+  if (event) event.preventDefault();
+  if (typeof auth !== 'undefined') {
+    auth.signOut().then(() => {
+      const isSub = window.location.pathname.includes('/agents/');
+      window.location.href = isSub ? '../index.html' : 'index.html';
+    }).catch(err => {
+      console.error("Sign out error:", err);
+    });
+  }
+}
+
+// Expose functions to global window scope for HTML onclick attributes
+window.markNotificationRead = markNotificationRead;
+window.clearNotifications = clearNotifications;
+window.handleSignOut = handleSignOut;
 
 // Global click handler to close dropdowns when clicking outside
 document.addEventListener('click', (e) => {
@@ -332,4 +414,33 @@ document.addEventListener('click', (e) => {
     searchDropdown.style.display = 'none';
   }
 });
+
+// Route Guard and Seeding Coordinator
+if (typeof auth !== 'undefined') {
+  auth.onAuthStateChanged(async (user) => {
+    const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
+    
+    if (!user) {
+      if (!isLoginPage) {
+        const isSubfolder = window.location.pathname.includes('/agents/');
+        window.location.href = isSubfolder ? '../index.html' : 'index.html';
+      }
+    } else {
+      if (typeof seedDatabaseIfEmpty === 'function') {
+        await seedDatabaseIfEmpty();
+      }
+      
+      if (isLoginPage) {
+        const isSubfolder = window.location.pathname.includes('/agents/');
+        window.location.href = isSubfolder ? '../dashboard.html' : 'dashboard.html';
+      } else {
+        // Safe to listen to notifications and load page content
+        listenToNotifications();
+        if (typeof initPage === 'function') {
+          initPage();
+        }
+      }
+    }
+  });
+}
 

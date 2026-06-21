@@ -114,14 +114,15 @@
   <script>
     const AGENT_SLUG = 'ranker';
   </script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-init.js"></script>
   <script src="../js/shared.js"></script>
   <script src="../js/agent-data.js"></script>
   <script>
     renderLayout('agents', AGENT_SLUG);
     renderAgentPage(AGENT_SLUG);
-    document.getElementById('bc-name').textContent = AGENT_DETAILS[AGENT_SLUG].name;
-    const m2 = document.getElementById('modal-agent-name-2');
-    if (m2) m2.textContent = AGENT_DETAILS[AGENT_SLUG].name;
   </script>
 </body>
 </html>

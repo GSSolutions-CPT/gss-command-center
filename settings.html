@@ -39,29 +39,29 @@
                 <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;">
                   <div class="avatar" style="width:72px;height:72px;font-size:24px;border-radius:18px;">KC</div>
                   <div>
-                    <div style="font-size:18px;font-weight:700;color:var(--navy);">Kyle Cass</div>
-                    <div style="font-size:13px;color:var(--text-muted);">Owner & Founder · Global Security Solutions</div>
+                    <div style="font-size:18px;font-weight:700;color:var(--navy);" id="profile-display-name">Kyle Cass</div>
+                    <div style="font-size:13px;color:var(--text-muted);" id="profile-display-role">Owner & Founder · Global Security Solutions</div>
                     <div style="margin-top:6px;"><span class="badge-pill badge-success">Active Owner</span></div>
                   </div>
                 </div>
 
                 <div class="form-group">
                   <label class="form-label">Full Name</label>
-                  <input class="form-input" type="text" value="Kyle Cass">
+                  <input class="form-input" type="text" id="profile-name" value="Kyle Cass">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Email Address</label>
-                  <input class="form-input" type="email" value="kyle@globalsecuritysolutions.co.za">
+                  <input class="form-input" type="email" id="profile-email" value="kyle@globalsecuritysolutions.co.za">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Phone</label>
-                  <input class="form-input" type="tel" value="062 955 8559">
+                  <input class="form-input" type="tel" id="profile-phone" value="062 955 8559">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Role</label>
-                  <input class="form-input" type="text" value="GSS Owner & Founder">
+                  <input class="form-input" type="text" id="profile-role" value="GSS Owner & Founder">
                 </div>
-                <button class="btn btn-primary" onclick="showToast('✓ Profile updated')"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                <button class="btn btn-primary" onclick="saveProfileSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Profile</button>
               </div>
             </div>
 
@@ -70,24 +70,25 @@
               <div class="card-body">
                 <div class="form-group">
                   <label class="form-label">Company</label>
-                  <input class="form-input" type="text" value="Global Security Solutions">
+                  <input class="form-input" type="text" id="company-name" value="Global Security Solutions">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Address</label>
-                  <input class="form-input" type="text" value="66 Robyn Rd, Langeberg Ridge, Durbanville">
+                  <input class="form-input" type="text" id="company-address" value="66 Robyn Rd, Langeberg Ridge, Durbanville">
                 </div>
                 <div class="form-group">
                   <label class="form-label">City / Postal Code</label>
-                  <input class="form-input" type="text" value="Cape Town, 7550">
+                  <input class="form-input" type="text" id="company-city" value="Cape Town, 7550">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Website</label>
-                  <input class="form-input" type="text" value="globalsecuritysolutions.co.za">
+                  <input class="form-input" type="text" id="company-website" value="globalsecuritysolutions.co.za">
                 </div>
                 <div class="form-group">
                   <label class="form-label">COO</label>
-                  <input class="form-input" type="text" value="Rashaad Steyn">
+                  <input class="form-input" type="text" id="company-coo" value="Rashaad Steyn">
                 </div>
+                <button class="btn btn-primary" onclick="saveCompanySettings()" style="margin-bottom:18px;"><i class="fa-solid fa-floppy-disk"></i> Save Company</button>
                 <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:12.5px;color:var(--text);">
                   <strong style="color:var(--navy);">Services:</strong> Intruder detection, CCTV, access control, electric fencing, gate automation, smart home tech.<br>
                   <strong style="color:var(--navy);margin-top:6px;display:inline-block;">Custom software:</strong> NEXUS VMS, GSS-OS CRM (React + Supabase).
@@ -137,6 +138,10 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-init.js"></script>
   <script src="js/shared.js"></script>
   <script>
     renderLayout('settings');
@@ -225,6 +230,110 @@
         </span>
       </div>
     `).join('');
+
+    // Firestore Integration
+    async function initPage() {
+      if (typeof db === 'undefined') return;
+      try {
+        const doc = await db.collection('settings').doc('profile').get();
+        if (doc.exists) {
+          const p = doc.data();
+          document.getElementById('profile-name').value = p.fullName || '';
+          document.getElementById('profile-email').value = p.email || '';
+          document.getElementById('profile-phone').value = p.phone || '';
+          document.getElementById('profile-role').value = p.role || '';
+          
+          document.getElementById('company-name').value = p.company || '';
+          document.getElementById('company-address').value = p.address || '';
+          document.getElementById('company-city').value = p.city || '';
+          document.getElementById('company-website').value = p.website || '';
+          document.getElementById('company-coo').value = p.coo || '';
+
+          // Update header display
+          document.getElementById('profile-display-name').textContent = p.fullName || 'Kyle Cass';
+          document.getElementById('profile-display-role').textContent = `${p.role || 'Owner'} · ${p.company || 'GSS'}`;
+        }
+      } catch (err) {
+        console.error("Error loading settings:", err);
+      }
+    }
+
+    async function saveProfileSettings() {
+      if (typeof db === 'undefined') return;
+      try {
+        const doc = await db.collection('settings').doc('profile').get();
+        const currentData = doc.exists ? doc.data() : {};
+        
+        const fullName = document.getElementById('profile-name').value;
+        const email = document.getElementById('profile-email').value;
+        const phone = document.getElementById('profile-phone').value;
+        const role = document.getElementById('profile-role').value;
+        
+        await db.collection('settings').doc('profile').set({
+          ...currentData,
+          fullName,
+          email,
+          phone,
+          role
+        });
+
+        // Add activity log
+        await db.collection('activities').add({
+          agent: 'nexus',
+          icon: 'fa-user-gear',
+          text: `<strong>Kyle Cass</strong> updated his owner profile settings.`,
+          timestamp: new Date()
+        });
+
+        // Update header display
+        document.getElementById('profile-display-name').textContent = fullName;
+        document.getElementById('profile-display-role').textContent = `${role} · ${currentData.company || 'GSS'}`;
+
+        showToast('✓ Profile settings saved!');
+      } catch (err) {
+        console.error("Error saving profile:", err);
+        showToast('✗ Error saving profile settings');
+      }
+    }
+
+    async function saveCompanySettings() {
+      if (typeof db === 'undefined') return;
+      try {
+        const doc = await db.collection('settings').doc('profile').get();
+        const currentData = doc.exists ? doc.data() : {};
+        
+        const company = document.getElementById('company-name').value;
+        const address = document.getElementById('company-address').value;
+        const city = document.getElementById('company-city').value;
+        const website = document.getElementById('company-website').value;
+        const coo = document.getElementById('company-coo').value;
+        
+        await db.collection('settings').doc('profile').set({
+          ...currentData,
+          company,
+          address,
+          city,
+          website,
+          coo
+        });
+
+        // Add activity log
+        await db.collection('activities').add({
+          agent: 'nexus',
+          icon: 'fa-building',
+          text: `<strong>Kyle Cass</strong> updated company information settings.`,
+          timestamp: new Date()
+        });
+
+        // Update header display
+        document.getElementById('profile-display-role').textContent = `${currentData.role || 'Owner'} · ${company}`;
+
+        showToast('✓ Company settings saved!');
+      } catch (err) {
+        console.error("Error saving company info:", err);
+        showToast('✗ Error saving company settings');
+      }
+    }
   </script>
 </body>
 </html>

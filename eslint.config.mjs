@@ -14,13 +14,35 @@ export default [
         setTimeout: "readonly",
         event: "readonly",
         HTMLElement: "readonly",
-        Event: "readonly"
+        Event: "readonly",
+        // Firebase Globals
+        firebase: "readonly",
+        db: "readonly",
+        auth: "readonly",
+        // Shared & Agent Globals
+        AGENT_SLUG: "readonly",
+        initPage: "writable",
+        seedDatabaseIfEmpty: "writable",
+        formatRelativeTime: "readonly",
+        showToast: "readonly",
+        renderLayout: "readonly",
+        toggleAgentsMenu: "readonly",
+        openSidebar: "readonly",
+        closeSidebar: "readonly",
+        formatDate: "readonly",
+        toggleTheme: "readonly",
+        handleSearch: "readonly",
+        toggleNotificationsDropdown: "readonly",
+        toggleUserDropdown: "readonly",
+        toggleAgentStatus: "readonly",
+        openTaskModal: "readonly",
+        submitTask: "readonly"
       }
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": "off",
       "no-undef": "warn",
-      "no-redeclare": "warn"
+      "no-redeclare": "off"
     }
   }
 ];

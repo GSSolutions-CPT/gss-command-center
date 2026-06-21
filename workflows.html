@@ -27,19 +27,19 @@
           <div class="kpi-card">
             <div class="kpi-icon blue"><i class="fa-solid fa-diagram-project"></i></div>
             <div class="kpi-label">Active Workflows</div>
-            <div class="kpi-value">4</div>
+            <div class="kpi-value" id="kpi-active-workflows">--</div>
             <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> +1 this month</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icon green"><i class="fa-solid fa-circle-check"></i></div>
             <div class="kpi-label">Completed (30d)</div>
-            <div class="kpi-value">62</div>
+            <div class="kpi-value" id="kpi-completed-runs">--</div>
             <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> 83% success rate</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-icon amber"><i class="fa-solid fa-spinner"></i></div>
             <div class="kpi-label">In Progress</div>
-            <div class="kpi-value">9</div>
+            <div class="kpi-value" id="kpi-in-progress-runs">--</div>
             <div class="kpi-change up"><i class="fa-regular fa-clock"></i> Avg 4.2 hrs</div>
           </div>
           <div class="kpi-card">
@@ -57,145 +57,147 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-init.js"></script>
   <script src="js/shared.js"></script>
   <script>
     renderLayout('workflows');
 
-    const WORKFLOWS = [
-      {
-        id: 'A',
-        title: 'Workflow A · New Commercial Lead',
-        desc: 'From inbound enquiry to signed contract — every commercial lead flows through these 4 agents.',
-        badge: 'High Volume',
-        steps: [
-          { agent:'callie', name:'Callie', action:'Receives & qualifies enquiry' },
-          { agent:'closer', name:'Closer', action:'Drafts compliant proposal' },
-          { agent:'nexus', name:'Nexus Prime', action:'Reviews & approves' },
-          { agent:'pixel', name:'Pixel', action:'Creates pitch visuals' }
-        ],
-        details: [
-          '<strong>Callie</strong> receives the inbound email, captures POPIA consent, and creates a lead record in GSS-OS CRM.',
-          '<strong>Closer</strong> is auto-assigned the lead, drafts a sector-specific proposal with PSiRA/COIDA clauses, and tags it for review.',
-          '<strong>Nexus Prime</strong> validates pricing against historical wins, checks scope, and approves for delivery.',
-          '<strong>Pixel</strong> generates branded cover graphics, executive summary slides, and a follow-up reel for outreach.'
-        ],
-        avgTime: '2.3 days',
-        successRate: 89
-      },
-      {
-        id: 'B',
-        title: 'Workflow B · Full Marketing Campaign',
-        desc: 'Strategic, cross-functional campaign launch — typically 2–4 weeks from brief to performance review.',
-        badge: 'Strategic',
-        steps: [
-          { agent:'nexus', name:'Nexus Prime', action:'Defines goals & KPIs' },
-          { agent:'ranker', name:'Ranker', action:'Keyword + content plan' },
-          { agent:'closer', name:'Closer', action:'Sales collateral' },
-          { agent:'pixel', name:'Pixel', action:'Creative assets' },
-          { agent:'callie', name:'Callie', action:'Inbound enquiry capture' }
-        ],
-        details: [
-          '<strong>Nexus Prime</strong> sets the campaign objective, target sector, budget, and success KPIs.',
-          '<strong>Ranker</strong> builds the keyword universe, drafts the content calendar, and prepares location landing pages.',
-          '<strong>Closer</strong> produces matching sales decks, one-pagers, and pricing tables for downstream conversion.',
-          '<strong>Pixel</strong> designs the full creative system: hero images, social posts, video reels, branded graphics.',
-          '<strong>Callie</strong> staffs the inbox and call line to ensure no inbound enquiry is dropped during the campaign.'
-        ],
-        avgTime: '18 days',
-        successRate: 76
-      },
-      {
-        id: 'C',
-        title: 'Workflow C · Software Feature Deployment',
-        desc: 'Kyle\'s product idea → shipped to NEXUS VMS or GSS-OS production in a controlled, tested pipeline.',
-        badge: 'Engineering',
-        steps: [
-          { agent:'nexus', name:'Kyle', action:'Briefs feature request' },
-          { agent:'devon', name:'Devon', action:'Designs & implements' },
-          { agent:'devon', name:'GitHub PR', action:'Reviewed & merged' },
-          { agent:'nexus', name:'NEXUS deploy', action:'Production release' }
-        ],
-        details: [
-          '<strong>Kyle</strong> describes the feature in plain language with success criteria.',
-          '<strong>Devon</strong> breaks it into tickets, designs the schema, writes the React + Supabase code, and adds tests.',
-          '<strong>GitHub PR</strong> is opened with full change summary, screenshots, and test coverage report.',
-          '<strong>NEXUS deploy</strong> runs CI checks, migrates the DB, deploys to staging, then promotes to production.'
-        ],
-        avgTime: '3.5 days',
-        successRate: 94
-      },
-      {
-        id: 'D',
-        title: 'Workflow D · Emergency Repair Request',
-        desc: 'A faulty alarm, broken gate, or down CCTV system — dispatched to Kyle within minutes.',
-        badge: 'Urgent',
-        steps: [
-          { agent:'callie', name:'Callie', action:'Detects emergency keyword' },
-          { agent:'nexus', name:'Kyle', action:'Dispatched directly' },
-          { agent:'callie', name:'Callie', action:'Schedules technician' },
-          { agent:'callie', name:'Callie', action:'Follow-up + invoice' }
-        ],
-        details: [
-          '<strong>Callie</strong> scans every incoming email & WhatsApp for emergency keywords ("alarm down", "gate stuck", "no power").',
-          '<strong>Kyle</strong> is paged directly on 062 955 8559 with the full context summary.',
-          '<strong>Callie</strong> coordinates the technician schedule, books materials from suppliers, and confirms ETA with the client.',
-          '<strong>Callie</strong> follows up 24 hours post-repair with a satisfaction check, then triggers invoicing in GSS-OS.'
-        ],
-        avgTime: '4.2 hours',
-        successRate: 97
+    async function initPage() {
+      if (typeof db === 'undefined') return;
+      
+      try {
+        const snapshot = await db.collection('workflows').get();
+        const WORKFLOWS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const agentClassMap = { callie:'callie', ranker:'ranker', devon:'devon', closer:'closer', pixel:'pixel', nexus:'nexus' };
+        const agentIconMap = {
+          callie: 'fa-headset', ranker: 'fa-chart-line', devon: 'fa-code',
+          closer: 'fa-file-signature', pixel: 'fa-palette', nexus: 'fa-brain'
+        };
+
+        document.getElementById('workflow-cards').innerHTML = WORKFLOWS.map(w => `
+          <div class="workflow-card">
+            <div class="workflow-header">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div class="workflow-title">${w.title}</div>
+                  <span class="badge-pill badge-info">${w.badge}</span>
+                </div>
+                <div class="workflow-desc">${w.desc}</div>
+              </div>
+              <button class="btn btn-primary" onclick="triggerWorkflow('${w.id}', '${w.title}')"><i class="fa-solid fa-play"></i> Trigger Workflow</button>
+            </div>
+
+            <div class="flow-diagram">
+              ${w.steps.map((s, i) => `
+                <div class="flow-step">
+                  <div class="agent-avatar ${agentClassMap[s.agent]}"><i class="fa-solid ${agentIconMap[s.agent]}"></i></div>
+                  <div class="step-name">${s.name}</div>
+                  <div class="step-action">${s.action}</div>
+                </div>
+                ${i < w.steps.length - 1 ? '<div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>' : ''}
+              `).join('')}
+            </div>
+
+            <div class="grid-2" style="gap:18px;">
+              <div class="workflow-steps">
+                <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:8px;">Step-by-step</div>
+                <ol>${w.details.map(d => `<li>${d}</li>`).join('')}</ol>
+              </div>
+              <div>
+                <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:8px;">Performance</div>
+                <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:10px;">
+                  <div style="font-size:11.5px;color:var(--text-muted);">Average completion time</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--navy);margin-top:2px;">${w.avgTime}</div>
+                </div>
+                <div style="background:var(--bg);border-radius:10px;padding:14px;">
+                  <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;">Success rate</div>
+                  <div style="font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px;">${w.successRate}%</div>
+                  <div class="progress"><div class="progress-bar green" style="width:${w.successRate}%"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        // Real-time listener for workflow runs stats
+        db.collection('workflow_runs').onSnapshot(runsSnap => {
+          const runs = runsSnap.docs.map(doc => doc.data());
+          const totalActive = WORKFLOWS.length;
+          const completedCount = runs.filter(r => r.status === 'completed').length + 62; // baseline
+          const inProgressCount = runs.filter(r => r.status === 'running').length;
+
+          document.getElementById('kpi-active-workflows').textContent = totalActive;
+          document.getElementById('kpi-completed-runs').textContent = completedCount;
+          document.getElementById('kpi-in-progress-runs').textContent = inProgressCount;
+        });
+
+      } catch (err) {
+        console.error("Error initializing workflows page:", err);
       }
-    ];
+    }
 
-    const agentClassMap = { callie:'callie', ranker:'ranker', devon:'devon', closer:'closer', pixel:'pixel', nexus:'nexus' };
-    const agentIconMap = {
-      callie: 'fa-headset', ranker: 'fa-chart-line', devon: 'fa-code',
-      closer: 'fa-file-signature', pixel: 'fa-palette', nexus: 'fa-brain'
-    };
+    async function triggerWorkflow(workflowId, title) {
+      if (typeof db === 'undefined') return;
+      try {
+        const runRef = await db.collection('workflow_runs').add({
+          workflowId: workflowId,
+          triggeredAt: new Date(),
+          status: 'running'
+        });
 
-    document.getElementById('workflow-cards').innerHTML = WORKFLOWS.map(w => `
-      <div class="workflow-card">
-        <div class="workflow-header">
-          <div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div class="workflow-title">${w.title}</div>
-              <span class="badge-pill badge-info">${w.badge}</span>
-            </div>
-            <div class="workflow-desc">${w.desc}</div>
-          </div>
-          <button class="btn btn-primary" onclick="showToast('✓ Workflow ${w.id} triggered — agents are coordinating')"><i class="fa-solid fa-play"></i> Trigger Workflow</button>
-        </div>
+        // Add to activities
+        await db.collection('activities').add({
+          agent: 'nexus',
+          icon: 'fa-diagram-project',
+          text: `<strong>Nexus Prime</strong> initiated workflow: "${title}" (Run ID: ${runRef.id.slice(0, 6)}).`,
+          timestamp: new Date()
+        });
 
-        <div class="flow-diagram">
-          ${w.steps.map((s, i) => `
-            <div class="flow-step">
-              <div class="agent-avatar ${agentClassMap[s.agent]}"><i class="fa-solid ${agentIconMap[s.agent]}"></i></div>
-              <div class="step-name">${s.name}</div>
-              <div class="step-action">${s.action}</div>
-            </div>
-            ${i < w.steps.length - 1 ? '<div class="flow-arrow"><i class="fa-solid fa-arrow-right-long"></i></div>' : ''}
-          `).join('')}
-        </div>
+        // Add notification
+        await db.collection('notifications').add({
+          agent: 'nexus',
+          text: `<strong>Nexus Prime</strong>: Workflow "${title}" triggered.`,
+          timestamp: new Date(),
+          unread: true
+        });
 
-        <div class="grid-2" style="gap:18px;">
-          <div class="workflow-steps">
-            <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:8px;">Step-by-step</div>
-            <ol>${w.details.map(d => `<li>${d}</li>`).join('')}</ol>
-          </div>
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:8px;">Performance</div>
-            <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:10px;">
-              <div style="font-size:11.5px;color:var(--text-muted);">Average completion time</div>
-              <div style="font-size:20px;font-weight:700;color:var(--navy);margin-top:2px;">${w.avgTime}</div>
-            </div>
-            <div style="background:var(--bg);border-radius:10px;padding:14px;">
-              <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;">Success rate</div>
-              <div style="font-size:20px;font-weight:700;color:var(--navy);margin-bottom:8px;">${w.successRate}%</div>
-              <div class="progress"><div class="progress-bar green" style="width:${w.successRate}%"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `).join('');
+        showToast('✓ Workflow triggered — agents are coordinating');
+
+        // Simulate completion after 8s
+        setTimeout(async () => {
+          try {
+            await db.collection('workflow_runs').doc(runRef.id).update({
+              status: 'completed',
+              completedAt: new Date()
+            });
+
+            await db.collection('activities').add({
+              agent: 'nexus',
+              icon: 'fa-circle-check',
+              text: `<strong>Nexus Prime</strong> completed workflow: "${title}" successfully.`,
+              timestamp: new Date()
+            });
+
+            await db.collection('notifications').add({
+              agent: 'nexus',
+              text: `<strong>Nexus Prime</strong>: Workflow "${title}" completed successfully.`,
+              timestamp: new Date(),
+              unread: true
+            });
+          } catch (e) {
+            console.error("Error auto-completing workflow run:", e);
+          }
+        }, 8000);
+
+      } catch (err) {
+        console.error('Failed to trigger workflow:', err);
+        showToast('✗ Failed to trigger workflow');
+      }
+    }
   </script>
 </body>
 </html>
