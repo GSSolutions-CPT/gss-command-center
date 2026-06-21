@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In · GSS Digital Workforce Command Center</title>
+  <meta name="description" content="Access the GSS Digital Workforce Command Center. Owner portal for managing security service workflows, South African compliance, projects, and AI agents in Cape Town.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="logo-mark">G</div>
+        <div>
+          <h1>GSS Command Center</h1>
+          <p>Digital Workforce · Cape Town</p>
+        </div>
+      </div>
+
+      <h2>Welcome back</h2>
+      <p class="subtitle">Sign in to access your digital workforce.</p>
+
+      <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-input" type="email" id="email" placeholder="kyle@globalsecuritysolutions.co.za" value="kyle@globalsecuritysolutions.co.za" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" placeholder="••••••••••" value="demo-password" required>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:12.5px;">
+          <label style="display:flex;align-items:center;gap:6px;color:var(--text-muted);">
+            <input type="checkbox" checked> Remember me
+          </label>
+          <a href="#" style="color:var(--electric);font-weight:600;">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="height:44px;font-size:14px;">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          Sign in to Command Center
+        </button>
+      </form>
+
+      <div class="login-footer">
+        Global Security Solutions<br>
+        Durbanville, Cape Town
+      </div>
+    </div>
+  </div>
+</body>
+</html>

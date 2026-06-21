@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ranker · GSS Command Center</title>
+  <meta name="description" content="Meet Ranker, GSS Local SEO & Intelligence Strategist. Optimizes Western Cape search visibility, keyword tracking, and competitor price checks.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+    <div class="main">
+      <div id="topbar-root"></div>
+      <main class="content">
+
+        <!-- Breadcrumb -->
+        <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;">
+          <a href="../dashboard.html" style="color:var(--text-muted);">Dashboard</a>
+          <i class="fa-solid fa-chevron-right" style="font-size:9px;margin: 0 6px;"></i>
+          <span>Agents</span>
+          <i class="fa-solid fa-chevron-right" style="font-size:9px;margin: 0 6px;"></i>
+          <span style="color:var(--navy);font-weight:600;" id="bc-name">Agent</span>
+        </div>
+
+        <!-- Hero -->
+        <div id="agent-hero-root"></div>
+
+        <!-- Powered by + Personality -->
+        <div class="card" style="margin-bottom:18px;">
+          <div class="card-body">
+            <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:10px;">Powered By</div>
+            <div id="powered-by" style="margin-bottom:18px;"></div>
+            <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;letter-spacing:0.6px;margin-bottom:8px;">Personality</div>
+            <p id="personality" style="font-size:13.5px;color:var(--text);line-height:1.65;"></p>
+          </div>
+        </div>
+
+        <!-- Two col: Responsibilities + KPIs -->
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Core Responsibilities</div></div>
+            <div class="card-body">
+              <ul id="responsibilities" style="list-style:none;"></ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Live KPIs</div></div>
+            <div class="card-body" id="kpis"></div>
+          </div>
+        </div>
+
+        <!-- Activity + Send Task + Integrations -->
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Recent Activity</div>
+              <span class="badge-pill badge-info">Last 10</span>
+            </div>
+            <div class="card-body" id="activity"></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:18px;">
+              <div class="card-header"><div class="card-title">Send Task to <span id="modal-agent-name">Agent</span></div></div>
+              <div class="card-body">
+                <form onsubmit="submitTask(event)">
+                  <div class="form-group">
+                    <label class="form-label">Task description</label>
+                    <textarea class="form-textarea" id="task-input" placeholder="e.g. Triage all unread emails from the past 24 hours and flag urgent ones..."></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select">
+                      <option>Normal</option>
+                      <option>High</option>
+                      <option>Urgent</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-paper-plane"></i> Dispatch Task
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">Connected Integrations</div></div>
+              <div class="card-body" id="integrations"></div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <div id="footer-root"></div>
+    </div>
+  </div>
+
+  <!-- Task Modal -->
+  <div class="modal-backdrop" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
+    <div class="modal">
+      <h3>Send task to <span id="modal-agent-name-2">Agent</span></h3>
+      <form onsubmit="submitTask(event)">
+        <textarea class="form-textarea" placeholder="Describe the task..." style="margin-bottom:14px;"></textarea>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="btn btn-outline" onclick="closeTaskModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Dispatch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const AGENT_SLUG = 'ranker';
+  </script>
+  <script src="../js/shared.js"></script>
+  <script src="../js/agent-data.js"></script>
+  <script>
+    renderLayout('agents', AGENT_SLUG);
+    renderAgentPage(AGENT_SLUG);
+    document.getElementById('bc-name').textContent = AGENT_DETAILS[AGENT_SLUG].name;
+    const m2 = document.getElementById('modal-agent-name-2');
+    if (m2) m2.textContent = AGENT_DETAILS[AGENT_SLUG].name;
+  </script>
+</body>
+</html>

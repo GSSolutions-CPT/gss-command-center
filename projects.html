@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects & Leads · GSS Command Center</title>
+  <meta name="description" content="Track active residential, commercial, and industrial security installation projects, leads, and sales pipeline values at GSS Cape Town.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+    <div class="main">
+      <div id="topbar-root"></div>
+      <main class="content">
+
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1 class="page-title">Projects & Leads</h1>
+            <p class="page-subtitle">Every active engagement across residential, commercial, and industrial sectors.</p>
+          </div>
+          <button class="btn btn-primary" onclick="showToast('✓ New lead form opened')"><i class="fa-solid fa-plus"></i> New Lead</button>
+        </div>
+
+        <!-- Summary -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="kpi-label">Total Projects</div>
+            <div class="kpi-value">24</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> +6 this quarter</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="kpi-label">Active</div>
+            <div class="kpi-value">11</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> R1.8M in flight</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber"><i class="fa-solid fa-file-pen"></i></div>
+            <div class="kpi-label">Proposals Sent</div>
+            <div class="kpi-value">7</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> R612k pipeline</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple"><i class="fa-solid fa-rand-sign"></i></div>
+            <div class="kpi-label">Revenue (YTD)</div>
+            <div class="kpi-value">R3.4M</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> +28% YoY</div>
+          </div>
+        </div>
+
+        <!-- Filters + Table -->
+        <div class="card">
+          <div class="card-header" style="flex-direction:column;align-items:stretch;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="card-title">All Projects</div>
+              <div style="font-size:12.5px;color:var(--text-muted);"><span id="row-count">0</span> shown</div>
+            </div>
+            <div class="filters-bar" style="margin:0;">
+              <select class="filter-select" id="filter-status">
+                <option value="">All Statuses</option>
+                <option>Lead</option>
+                <option>Proposal Sent</option>
+                <option>Active</option>
+                <option>Completed</option>
+              </select>
+              <select class="filter-select" id="filter-sector">
+                <option value="">All Sectors</option>
+                <option>Residential</option>
+                <option>Commercial</option>
+                <option>Industrial</option>
+              </select>
+              <select class="filter-select" id="filter-value">
+                <option value="">All Values</option>
+                <option value="lt100">Under R100k</option>
+                <option value="100to250">R100k – R250k</option>
+                <option value="gt250">Over R250k</option>
+              </select>
+              <input type="text" class="form-input" id="filter-search" placeholder="Search projects..." style="height:36px;width:auto;flex:1;min-width:200px;">
+              <button class="btn btn-outline btn-sm" onclick="clearFilters()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Sector</th>
+                  <th>Status</th>
+                  <th>Value</th>
+                  <th>Owner Agent</th>
+                  <th>Updated</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="projects-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <div id="footer-root"></div>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script>
+    renderLayout('projects');
+
+    const PROJECTS = [
+      { name: '35 on Rose — City Bowl Development', sector: 'Commercial', status: 'Active', value: 450000, owner: 'devon', updated: '2 hr ago' },
+      { name: 'Durbanville Custom Garden Perimeter', sector: 'Residential', status: 'Completed', value: 85000, owner: 'closer', updated: '3 days ago' },
+      { name: 'Century City CCTV Upgrade', sector: 'Commercial', status: 'Proposal Sent', value: 210000, owner: 'closer', updated: '2 hr ago' },
+      { name: 'Constantia Smart Home Integration', sector: 'Residential', status: 'Lead', value: 0, owner: 'callie', updated: '4 hr ago' },
+      { name: 'Bellville Industrial Park — Access Control', sector: 'Industrial', status: 'Active', value: 380000, owner: 'devon', updated: 'Yesterday' },
+      { name: 'Tygervalley Mall — Electric Fence Renewal', sector: 'Commercial', status: 'Proposal Sent', value: 165000, owner: 'closer', updated: 'Yesterday' },
+      { name: 'Brackenfell Residential Estate (24 homes)', sector: 'Residential', status: 'Active', value: 540000, owner: 'nexus-prime', updated: '2 days ago' },
+      { name: 'Kuils River Warehouse — Intruder Detection', sector: 'Industrial', status: 'Lead', value: 0, owner: 'callie', updated: '3 days ago' },
+      { name: 'Stellenberg Private Home — Full Security', sector: 'Residential', status: 'Active', value: 124000, owner: 'closer', updated: '4 days ago' },
+      { name: 'Cape Town CBD Office Tower — VMS Rollout', sector: 'Commercial', status: 'Proposal Sent', value: 720000, owner: 'devon', updated: '5 days ago' },
+      { name: 'Plattekloof Smart Gate Automation', sector: 'Residential', status: 'Completed', value: 38000, owner: 'closer', updated: '1 week ago' },
+      { name: 'Parow Industrial — Perimeter Refresh', sector: 'Industrial', status: 'Active', value: 295000, owner: 'devon', updated: '1 week ago' }
+    ];
+
+    const agentMeta = {
+      'callie': { name: 'Callie', cls: 'callie' },
+      'ranker': { name: 'Ranker', cls: 'ranker' },
+      'devon': { name: 'Devon', cls: 'devon' },
+      'closer': { name: 'Closer', cls: 'closer' },
+      'pixel': { name: 'Pixel', cls: 'pixel' },
+      'nexus-prime': { name: 'Nexus', cls: 'nexus' }
+    };
+
+    function statusBadge(s) {
+      const map = {
+        'Lead': 'badge-muted', 'Proposal Sent': 'badge-info',
+        'Active': 'badge-success', 'Completed': 'badge-warning'
+      };
+      return `<span class="badge-pill ${map[s]||'badge-muted'}">${s}</span>`;
+    }
+    function formatRand(v) {
+      if (!v) return '<span style="color:var(--text-muted);">TBD</span>';
+      return 'R' + v.toLocaleString('en-ZA');
+    }
+
+    function renderTable() {
+      const status = document.getElementById('filter-status').value;
+      const sector = document.getElementById('filter-sector').value;
+      const valFilter = document.getElementById('filter-value').value;
+      const search = document.getElementById('filter-search').value.toLowerCase();
+
+      const filtered = PROJECTS.filter(p => {
+        if (status && p.status !== status) return false;
+        if (sector && p.sector !== sector) return false;
+        if (valFilter === 'lt100' && p.value >= 100000) return false;
+        if (valFilter === '100to250' && (p.value < 100000 || p.value > 250000)) return false;
+        if (valFilter === 'gt250' && p.value <= 250000) return false;
+        if (search && !p.name.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      document.getElementById('row-count').textContent = filtered.length;
+      document.getElementById('projects-tbody').innerHTML = filtered.map(p => {
+        const a = agentMeta[p.owner];
+        return `
+          <tr>
+            <td><div style="font-weight:600;color:var(--navy);">${p.name}</div></td>
+            <td>${p.sector}</td>
+            <td>${statusBadge(p.status)}</td>
+            <td style="font-weight:600;color:var(--navy);">${formatRand(p.value)}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="agent-avatar ${a.cls}" style="width:26px;height:26px;border-radius:7px;font-size:11px;font-weight:600;">${a.name[0]}</span>
+                <span>${a.name}</span>
+              </div>
+            </td>
+            <td style="color:var(--text-muted);">${p.updated}</td>
+            <td><button class="btn btn-ghost btn-sm"><i class="fa-solid fa-ellipsis"></i></button></td>
+          </tr>
+        `;
+      }).join('') || `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No projects match your filters</td></tr>`;
+    }
+    function clearFilters() {
+      ['filter-status','filter-sector','filter-value'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('filter-search').value = '';
+      renderTable();
+    }
+
+    ['filter-status','filter-sector','filter-value','filter-search'].forEach(id =>
+      document.getElementById(id).addEventListener('input', renderTable)
+    );
+    renderTable();
+  </script>
+</body>
+</html>

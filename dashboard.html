@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · GSS Command Center</title>
+  <meta name="description" content="Control room for Global Security Solutions. Monitor KPIs, activity feeds, quick actions, and status across all digital workforce AI agents.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+    <div class="main">
+      <div id="topbar-root"></div>
+      <main class="content">
+
+        <!-- Page header -->
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1 class="page-title">Welcome back, Kyle 👋</h1>
+            <p class="page-subtitle" id="today-date"></p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-outline"><i class="fa-regular fa-calendar"></i> Today</button>
+            <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Task</button>
+          </div>
+        </div>
+
+        <!-- KPI ROW -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue"><i class="fa-solid fa-user-plus"></i></div>
+            <div class="kpi-label">Active Leads This Week</div>
+            <div class="kpi-value">18</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> +24% vs last week</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="kpi-label">Open Emergency Tickets</div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-change down"><i class="fa-solid fa-arrow-down"></i> -2 since yesterday</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon green"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="kpi-label">Organic Traffic (30d)</div>
+            <div class="kpi-value">12,480</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> +31% QoQ</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon purple"><i class="fa-solid fa-rocket"></i></div>
+            <div class="kpi-label">Active Code Deployments</div>
+            <div class="kpi-value">7</div>
+            <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> 2 deployed today</div>
+          </div>
+        </div>
+
+        <!-- AGENTS GRID -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin: 8px 0 14px;">
+          <h2 style="font-size:17px;font-weight:700;color:var(--navy);">Your Digital Workforce</h2>
+          <a href="#" style="font-size:12.5px;color:var(--electric);font-weight:600;">6 agents online <i class="fa-solid fa-circle" style="font-size:6px;color:var(--success);"></i></a>
+        </div>
+
+        <div class="agent-grid" id="agent-grid"></div>
+
+        <!-- BOTTOM SECTION -->
+        <div class="grid-2" style="margin-top:24px;">
+          <!-- Activity feed -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Today's Activity Feed</div>
+              <button class="btn btn-ghost btn-sm">View all</button>
+            </div>
+            <div class="card-body" id="activity-feed"></div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Quick Actions</div>
+            </div>
+            <div class="card-body">
+              <div class="quick-action" onclick="window.location.href='projects.html'">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>New Lead</span>
+                <i class="fa-solid fa-chevron-right" style="margin-left:auto;background:none;color:var(--text-muted);width:auto;height:auto;font-size:11px;"></i>
+              </div>
+              <div class="quick-action" onclick="window.location.href='agents/callie.html'">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Emergency Repair</span>
+                <i class="fa-solid fa-chevron-right" style="margin-left:auto;background:none;color:var(--text-muted);width:auto;height:auto;font-size:11px;"></i>
+              </div>
+              <div class="quick-action" onclick="window.location.href='workflows.html'">
+                <i class="fa-solid fa-bullhorn"></i>
+                <span>Start Campaign</span>
+                <i class="fa-solid fa-chevron-right" style="margin-left:auto;background:none;color:var(--text-muted);width:auto;height:auto;font-size:11px;"></i>
+              </div>
+              <div class="quick-action" onclick="window.location.href='agents/devon.html'">
+                <i class="fa-solid fa-rocket"></i>
+                <span>Deploy Feature</span>
+                <i class="fa-solid fa-chevron-right" style="margin-left:auto;background:none;color:var(--text-muted);width:auto;height:auto;font-size:11px;"></i>
+              </div>
+
+              <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border-light);">
+                <div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Workforce Status</div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+                  <span>Total tasks today</span><strong style="color:var(--navy);">47</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+                  <span>Completed</span><strong style="color:var(--success);">39</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+                  <span>In progress</span><strong style="color:var(--electric);">6</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                  <span>Awaiting Kyle</span><strong style="color:var(--warning);">2</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <div id="footer-root"></div>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script>
+    renderLayout('dashboard');
+    document.getElementById('today-date').textContent = formatDate() + ' · Durbanville, Cape Town';
+
+    // Render agent grid
+    const grid = document.getElementById('agent-grid');
+    grid.innerHTML = AGENTS.map(a => `
+      <div class="agent-card" onclick="window.location.href='agents/${a.slug}.html'">
+        <div class="agent-card-top">
+          <div class="agent-avatar ${a.cls}"><i class="fa-solid ${a.icon}"></i></div>
+          <div style="flex:1;min-width:0;">
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-role">${a.role}</div>
+          </div>
+        </div>
+        <div class="agent-status-line">
+          <span class="status-dot ${a.status}"></span>
+          ${a.status === 'active' ? 'Active · ready for tasks' : 'Idle · standby'}
+        </div>
+        <a href="agents/${a.slug}.html" class="btn btn-outline btn-sm" style="align-self:flex-start;">
+          Open Agent <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    `).join('');
+
+    // Activity feed
+    const activities = [
+      { agent: 'callie', icon: 'fa-envelope', text: '<strong>Callie</strong> triaged 12 emails — 3 flagged urgent, 1 emergency repair dispatched.', time: '8 min ago' },
+      { agent: 'ranker', icon: 'fa-magnifying-glass-chart', text: '<strong>Ranker</strong> published blog post: "CCTV Camera Setup in Century City — 2026 Guide".', time: '34 min ago' },
+      { agent: 'devon', icon: 'fa-code-branch', text: '<strong>Devon</strong> merged PR #42 — NEXUS VMS visitor pre-registration flow.', time: '1 hr ago' },
+      { agent: 'closer', icon: 'fa-file-pen', text: '<strong>Closer</strong> drafted commercial proposal for Century City CCTV Upgrade (R210,000).', time: '2 hr ago' },
+      { agent: 'pixel', icon: 'fa-image', text: '<strong>Pixel</strong> published 3 Facebook reels — smart home installation series.', time: '3 hr ago' },
+      { agent: 'nexus', icon: 'fa-brain', text: '<strong>Nexus Prime</strong> launched "Q3 Western Cape Expansion" campaign across 4 agents.', time: '5 hr ago' },
+      { agent: 'callie', icon: 'fa-phone', text: '<strong>Callie</strong> placed supplier call to Regal Distributors — confirmed 12x HiLook 4K cameras for delivery Thu.', time: '6 hr ago' },
+      { agent: 'devon', icon: 'fa-bug', text: '<strong>Devon</strong> resolved bug #128 — GSS-OS CRM lead-status sync issue.', time: '7 hr ago' }
+    ];
+    const colorMap = { callie:'#06B6D4', ranker:'#8B5CF6', devon:'#10B981', closer:'#F59E0B', pixel:'#EC4899', nexus:'#1A3A5C' };
+    document.getElementById('activity-feed').innerHTML = `<div class="activity-feed">` + activities.map(a => `
+      <div class="activity-item">
+        <div class="activity-icon" style="background:${colorMap[a.agent]};"><i class="fa-solid ${a.icon}"></i></div>
+        <div class="activity-body">
+          <div class="activity-text">${a.text}</div>
+          <div class="activity-meta"><i class="fa-regular fa-clock"></i> ${a.time}</div>
+        </div>
+      </div>
+    `).join('') + `</div>`;
+  </script>
+</body>
+</html>

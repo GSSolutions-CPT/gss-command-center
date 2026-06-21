@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings · GSS Command Center</title>
+  <meta name="description" content="Manage Kyle Cass owner profile, connect integrations (Gmail, GitHub, Supabase), configure autonomy, and review the onboarding guide.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+    <div class="main">
+      <div id="topbar-root"></div>
+      <main class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Settings</h1>
+          <p class="page-subtitle">Manage your profile, integrations, agent configuration, and onboarding.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-tab="profile"><i class="fa-solid fa-user"></i> &nbsp;Profile</button>
+          <button class="tab" data-tab="integrations"><i class="fa-solid fa-plug"></i> &nbsp;Integrations</button>
+          <button class="tab" data-tab="agents"><i class="fa-solid fa-robot"></i> &nbsp;Agent Config</button>
+          <button class="tab" data-tab="onboarding"><i class="fa-solid fa-rocket"></i> &nbsp;Onboarding Guide</button>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="tab-panel active" data-panel="profile">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header"><div class="card-title">Owner Profile</div></div>
+              <div class="card-body">
+                <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px;">
+                  <div class="avatar" style="width:72px;height:72px;font-size:24px;border-radius:18px;">KC</div>
+                  <div>
+                    <div style="font-size:18px;font-weight:700;color:var(--navy);">Kyle Cass</div>
+                    <div style="font-size:13px;color:var(--text-muted);">Owner & Founder · Global Security Solutions</div>
+                    <div style="margin-top:6px;"><span class="badge-pill badge-success">Active Owner</span></div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input class="form-input" type="text" value="Kyle Cass">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email Address</label>
+                  <input class="form-input" type="email" value="kyle@globalsecuritysolutions.co.za">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input class="form-input" type="tel" value="062 955 8559">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Role</label>
+                  <input class="form-input" type="text" value="GSS Owner & Founder">
+                </div>
+                <button class="btn btn-primary" onclick="showToast('✓ Profile updated')"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><div class="card-title">Company Information</div></div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="form-label">Company</label>
+                  <input class="form-input" type="text" value="Global Security Solutions">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Address</label>
+                  <input class="form-input" type="text" value="66 Robyn Rd, Langeberg Ridge, Durbanville">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">City / Postal Code</label>
+                  <input class="form-input" type="text" value="Cape Town, 7550">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Website</label>
+                  <input class="form-input" type="text" value="globalsecuritysolutions.co.za">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">COO</label>
+                  <input class="form-input" type="text" value="Rashaad Steyn">
+                </div>
+                <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:12.5px;color:var(--text);">
+                  <strong style="color:var(--navy);">Services:</strong> Intruder detection, CCTV, access control, electric fencing, gate automation, smart home tech.<br>
+                  <strong style="color:var(--navy);margin-top:6px;display:inline-block;">Custom software:</strong> NEXUS VMS, GSS-OS CRM (React + Supabase).
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTEGRATIONS -->
+        <div class="tab-panel" data-panel="integrations">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Connected Tools & APIs</div></div>
+            <div class="card-body">
+              <div id="integrations-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGENT CONFIG -->
+        <div class="tab-panel" data-panel="agents">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Agent Configuration</div></div>
+            <div class="card-body">
+              <div id="agent-config-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ONBOARDING -->
+        <div class="tab-panel" data-panel="onboarding">
+          <div class="card" style="margin-bottom:18px;">
+            <div class="card-body" style="text-align:center;padding:30px;">
+              <div style="display:inline-grid;place-items:center;width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg, var(--electric), #00c2ff);color:#fff;font-size:26px;margin-bottom:14px;">
+                <i class="fa-solid fa-rocket"></i>
+              </div>
+              <h2 style="color:var(--navy);font-size:20px;margin-bottom:6px;">7-Step Activation Guide</h2>
+              <p style="color:var(--text-muted);font-size:13.5px;max-width:540px;margin: 0 auto;">Follow this sequence to bring a new agent online and integrated into the GSS digital workforce.</p>
+            </div>
+          </div>
+
+          <div class="step-list" id="step-list"></div>
+        </div>
+
+      </main>
+      <div id="footer-root"></div>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script>
+    renderLayout('settings');
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.querySelector(`.tab-panel[data-panel="${t.dataset.tab}"]`).classList.add('active');
+      });
+    });
+
+    // Integrations
+    const INTEGRATIONS = [
+      { name: 'Gmail / kyle@globalsecuritysolutions.co.za', icon: 'fa-envelope', color: '#EA4335', status: 'Connected', desc: 'Inbox triage for Callie' },
+      { name: 'Call For Me (062 955 8559)', icon: 'fa-phone', color: '#10B981', status: 'Connected', desc: 'Outbound supplier calling' },
+      { name: 'Google Calendar', icon: 'fa-calendar', color: '#4285F4', status: 'Connected', desc: 'Meeting scheduling' },
+      { name: 'Google Analytics 4 + Search Console', icon: 'fa-chart-line', color: '#F9AB00', status: 'Connected', desc: 'SEO tracking for Ranker' },
+      { name: 'GitHub (gss-os, nexus-vms)', icon: 'fa-github fa-brands', color: '#1F2937', status: 'Connected', desc: 'Source control for Devon' },
+      { name: 'Supabase', icon: 'fa-database', color: '#3ECF8E', status: 'Connected', desc: 'Backend & DB for Devon' },
+      { name: 'Facebook Business + Instagram', icon: 'fa-facebook fa-brands', color: '#1877F2', status: 'Connected', desc: 'Social posting for Pixel' },
+      { name: 'WordPress CMS', icon: 'fa-globe', color: '#21759B', status: 'Connected', desc: 'globalsecuritysolutions.co.za' },
+      { name: 'PandaDoc (e-signature)', icon: 'fa-signature', color: '#8B5CF6', status: 'Connected', desc: 'Proposal signing for Closer' },
+      { name: 'SARS eFiling', icon: 'fa-file-invoice-dollar', color: '#1A3A5C', status: 'Connected', desc: 'Tax compliance' }
+    ];
+    document.getElementById('integrations-list').innerHTML = INTEGRATIONS.map(i => `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-light);">
+        <div style="width:40px;height:40px;border-radius:10px;background:${i.color}15;color:${i.color};display:grid;place-items:center;font-size:16px;flex-shrink:0;">
+          <i class="${i.icon.includes('brands')?i.icon:'fa-solid '+i.icon}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:var(--navy);font-size:13.5px;">${i.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${i.desc}</div>
+        </div>
+        <span class="badge-pill badge-success"><i class="fa-solid fa-check" style="font-size:9px;margin-right:4px;"></i> ${i.status}</span>
+        <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-gear"></i> Configure</button>
+      </div>
+    `).join('');
+
+    // Agent config
+    const AGENT_CFG = [
+      { name: 'Callie', role: 'Operations & Procurement', cls: 'callie', enabled: true, autonomy: 'High' },
+      { name: 'Ranker', role: 'Local SEO Strategist', cls: 'ranker', enabled: true, autonomy: 'High' },
+      { name: 'Devon', role: 'Lead Engineer', cls: 'devon', enabled: true, autonomy: 'Medium' },
+      { name: 'Closer', role: 'Sales & Compliance', cls: 'closer', enabled: true, autonomy: 'Medium' },
+      { name: 'Pixel', role: 'Social Studio', cls: 'pixel', enabled: true, autonomy: 'High' },
+      { name: 'Nexus Prime', role: 'Chief of Staff', cls: 'nexus', enabled: true, autonomy: 'Maximum' }
+    ];
+    document.getElementById('agent-config-list').innerHTML = AGENT_CFG.map(a => `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-light);">
+        <div class="agent-avatar ${a.cls}" style="width:44px;height:44px;border-radius:11px;font-size:16px;font-weight:700;">${a.name[0]}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:var(--navy);font-size:14px;">${a.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${a.role}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11.5px;color:var(--text-muted);">Autonomy</div>
+          <div style="font-size:13px;font-weight:600;color:var(--navy);">${a.autonomy}</div>
+        </div>
+        <span class="badge-pill ${a.enabled?'badge-success':'badge-muted'}">${a.enabled?'Enabled':'Disabled'}</span>
+        <button class="btn btn-outline btn-sm"><i class="fa-solid fa-pen"></i> Edit</button>
+      </div>
+    `).join('');
+
+    // Onboarding steps
+    const STEPS = [
+      { title: 'Auto Research', desc: 'The system researches your business, services, and Cape Town market context — pulling from globalsecuritysolutions.co.za, public records, and competitor data.' },
+      { title: 'Upload Context', desc: 'Provide internal docs: pricing sheets, supplier list, proposal templates, brand guidelines, compliance certs. Stored securely with POPIA-grade encryption.' },
+      { title: 'Initial Prompt', desc: 'Define your business objectives in plain language — what you want each agent to prioritize, your sector mix, and growth goals for the quarter.' },
+      { title: 'Assign Roles', desc: 'Map each AI agent (Callie, Ranker, Devon, Closer, Pixel, Nexus Prime) to its real-world responsibilities and reporting lines within GSS.' },
+      { title: 'Connect Integrations', desc: 'Authenticate Gmail, GitHub, Supabase, Google Analytics, Facebook, Search Console, and any other tool the agents need to operate.' },
+      { title: 'Test Run', desc: 'Run a controlled workflow (e.g., Workflow A · New Commercial Lead) to validate handoffs, output quality, and alerting before going live.' },
+      { title: 'Go Live', desc: 'Activate the full digital workforce. Nexus Prime begins orchestrating, Callie monitors the inbox, and Kyle starts commanding from this dashboard.' }
+    ];
+    document.getElementById('step-list').innerHTML = STEPS.map((s, i) => `
+      <div class="step-item">
+        <div class="step-num">${i+1}</div>
+        <div class="step-content">
+          <h4>${s.title}</h4>
+          <p>${s.desc}</p>
+        </div>
+        <span class="badge-pill ${i < 7 ? 'badge-success' : 'badge-muted'}" style="align-self:center;">
+          ${i < 7 ? '✓ Complete' : 'Pending'}
+        </span>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

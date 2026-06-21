@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compliance Center · GSS Command Center</title>
+  <meta name="description" content="South African compliance tracker for GSS. Monitored compliance cards for POPIA, RICA, PSiRA, SARS, COIDA, and Electric Fence COC.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <div id="sidebar-root"></div>
+    <div class="main">
+      <div id="topbar-root"></div>
+      <main class="content">
+
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1 class="page-title">South African Compliance Framework</h1>
+            <p class="page-subtitle">Every regulation that governs Global Security Solutions — actively monitored by Closer & Callie.</p>
+          </div>
+          <button class="btn btn-primary"><i class="fa-solid fa-file-export"></i> Export Audit Pack</button>
+        </div>
+
+        <!-- Summary strip -->
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="kpi-card">
+            <div class="kpi-icon green"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="kpi-label">Compliant Regulations</div>
+            <div class="kpi-value">5 / 6</div>
+            <div class="kpi-change up"><i class="fa-solid fa-check"></i> 83% green</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="kpi-label">Action Needed</div>
+            <div class="kpi-value">1</div>
+            <div class="kpi-change down"><i class="fa-regular fa-calendar"></i> Renewal due Jun 2026</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon blue"><i class="fa-solid fa-clock-rotate-left"></i></div>
+            <div class="kpi-label">Next Audit</div>
+            <div class="kpi-value">82 days</div>
+            <div class="kpi-change up"><i class="fa-regular fa-circle-check"></i> On schedule</div>
+          </div>
+        </div>
+
+        <div id="compliance-grid" class="agent-grid" style="grid-template-columns:repeat(3,1fr);"></div>
+
+        <!-- Compliance notes -->
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header">
+            <div class="card-title">Recent Compliance Activity</div>
+          </div>
+          <div class="card-body">
+            <div class="activity-feed">
+              <div class="activity-item">
+                <div class="activity-icon" style="background:var(--success);"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>Closer</strong> updated all active proposals with the new POPIA consent clause (v2.3)</div>
+                  <div class="activity-meta"><i class="fa-regular fa-clock"></i> Yesterday · 14:22</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="background:var(--electric);"><i class="fa-solid fa-id-card"></i></div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>Callie</strong> logged a new RICA-compliant interception record for site monitoring at 35 on Rose</div>
+                  <div class="activity-meta"><i class="fa-regular fa-clock"></i> 2 days ago · 09:15</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="background:var(--warning);"><i class="fa-solid fa-bell"></i></div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>Nexus Prime</strong> flagged Electric Fence COC renewal — schedule technician re-certification before Jun 2026</div>
+                  <div class="activity-meta"><i class="fa-regular fa-clock"></i> 3 days ago · 16:48</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon" style="background:var(--success);"><i class="fa-solid fa-file-invoice"></i></div>
+                <div class="activity-body">
+                  <div class="activity-text"><strong>Closer</strong> filed Q1 SARS VAT return — R148,320 remitted</div>
+                  <div class="activity-meta"><i class="fa-regular fa-clock"></i> 1 week ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <div id="footer-root"></div>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script>
+    renderLayout('compliance');
+
+    const COMPLIANCE = [
+      {
+        name: 'POPIA',
+        sub: 'Protection of Personal Information Act',
+        status: 'compliant',
+        icon: 'fa-user-shield',
+        desc: 'Governs how GSS collects, stores, and processes client personal data — including security footage, addresses, and biometric access logs.',
+        gss: 'Every lead intake captures POPIA consent. All client data is encrypted at rest in Supabase with row-level security. Data retention policy: 5 years.',
+        next: 'Annual review · Aug 2026'
+      },
+      {
+        name: 'RICA',
+        sub: 'Regulation of Interception of Communications Act',
+        status: 'compliant',
+        icon: 'fa-satellite-dish',
+        desc: 'Regulates lawful interception of communications — relevant for CCTV audio recording, two-way intercoms, and monitored alarm comms.',
+        gss: 'All audio-capable systems include client-signed RICA waivers. Callie maintains the RICA log. Public-facing signage installed at every commercial site.',
+        next: 'Quarterly site audit · Jul 2026'
+      },
+      {
+        name: 'PSiRA',
+        sub: 'Private Security Industry Regulatory Authority',
+        status: 'compliant',
+        icon: 'fa-shield-halved',
+        desc: 'Mandatory accreditation for all private security service providers in South Africa. Required for legal CCTV installation, alarm response, and access control.',
+        gss: 'GSS holds an active PSiRA Grade A registration. All field technicians are PSiRA-graded individuals. Closer references PSiRA number in every proposal.',
+        next: 'Annual renewal · Mar 2027'
+      },
+      {
+        name: 'SARS',
+        sub: 'Tax & VAT Compliance',
+        status: 'compliant',
+        icon: 'fa-file-invoice-dollar',
+        desc: 'South African Revenue Service obligations: VAT registration, PAYE for staff, provisional tax, and annual returns.',
+        gss: 'GSS is a registered VAT vendor. Closer auto-generates VAT-compliant invoices. Quarterly returns filed via eFiling. Current Tax Clearance Certificate on file.',
+        next: 'Q2 VAT return · Jul 2026'
+      },
+      {
+        name: 'COIDA',
+        sub: 'Compensation for Occupational Injuries & Diseases',
+        status: 'compliant',
+        icon: 'fa-helmet-safety',
+        desc: 'Mandatory workplace insurance covering all GSS technicians installing fences, gates, and electrical security systems.',
+        gss: 'GSS holds a current Letter of Good Standing from the Compensation Fund. Annual ROE submission completed. Coverage extends to all field staff including subcontractors.',
+        next: 'Annual ROE · Apr 2027'
+      },
+      {
+        name: 'Electric Fence COC',
+        sub: 'SANS 10222-3 Certificate of Compliance',
+        status: 'action',
+        icon: 'fa-bolt',
+        desc: 'Every electric fence installation in SA requires a Certificate of Compliance from a registered installer per SANS 10222-3 standards.',
+        gss: 'GSS has a registered Electric Fence Installer on staff (Rashaad Steyn — COO). Current certification renewal window is approaching.',
+        next: '⚠ Renewal due · Jun 2026'
+      }
+    ];
+
+    document.getElementById('compliance-grid').innerHTML = COMPLIANCE.map(c => `
+      <div class="compliance-card ${c.status === 'action' ? 'action' : ''}">
+        <div class="compliance-head">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:9px;background:${c.status==='compliant'?'rgba(16,185,129,0.12)':'rgba(245,158,11,0.15)'};color:${c.status==='compliant'?'var(--success)':'var(--warning)'};display:grid;place-items:center;font-size:15px;">
+                <i class="fa-solid ${c.icon}"></i>
+              </div>
+              <div>
+                <div class="compliance-name">${c.name}</div>
+                <div class="compliance-sub">${c.sub}</div>
+              </div>
+            </div>
+          </div>
+          <span class="badge-pill ${c.status==='compliant'?'badge-success':'badge-warning'}">
+            ${c.status==='compliant' ? '✓ Compliant' : '⚠ Action Needed'}
+          </span>
+        </div>
+        <div class="compliance-desc">${c.desc}</div>
+        <div style="background:var(--bg);border-radius:8px;padding:12px;font-size:12.5px;color:var(--text);line-height:1.55;">
+          <strong style="color:var(--navy);">How GSS complies:</strong><br>
+          ${c.gss}
+        </div>
+        <div class="compliance-meta">
+          <span><i class="fa-regular fa-calendar"></i> ${c.next}</span>
+          <a href="#" style="color:var(--electric);font-weight:600;text-decoration:none;">View Documents <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
+        </div>
+      </div>
+    `).join('');
+  </script>
+</body>
+</html>

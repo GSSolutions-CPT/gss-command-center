@@ -1,0 +1,17 @@
+{
+  "name": "agent",
+  "version": "1.0.0",
+  "description": "A premium internal multi-page dashboard for **Kyle Cass**, Owner & Founder of **Global Security Solutions** (Durbanville, Cape Town). This is Kyle's command center for his six AI agents — Callie, Ranker, Devon, Closer, Pixel, and Nexus Prime.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0"
+  }
+}
