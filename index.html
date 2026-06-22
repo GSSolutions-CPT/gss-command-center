@@ -37,7 +37,7 @@
           <label style="display:flex;align-items:center;gap:6px;color:var(--text-muted);">
             <input type="checkbox" checked> Remember me
           </label>
-          <a href="#" style="color:var(--electric);font-weight:600;">Forgot password?</a>
+          <a href="#" onclick="handleForgotPassword(event)" style="color:var(--electric);font-weight:600;">Forgot password?</a>
         </div>
         <button type="submit" class="btn btn-primary btn-block" style="height:44px;font-size:14px;">
           <i class="fa-solid fa-arrow-right-to-bracket"></i>
@@ -64,6 +64,45 @@
           window.location.href = 'dashboard.html';
         }
       });
+    }
+
+    async function handleForgotPassword(e) {
+      e.preventDefault();
+      if (!window.auth) {
+        alert("Authentication system is not loaded yet.");
+        return;
+      }
+      
+      const emailInput = document.getElementById('email').value;
+      const email = emailInput || prompt("Please enter your email address to receive a password reset link:", "kyle@globalsecuritysolutions.co.za");
+      if (!email) return;
+
+      const existingError = document.getElementById('login-error');
+      if (existingError) existingError.remove();
+
+      const existingSuccess = document.getElementById('login-success');
+      if (existingSuccess) existingSuccess.remove();
+
+      try {
+        await window.auth.sendPasswordResetEmail(email);
+        
+        const successDiv = document.createElement('div');
+        successDiv.id = 'login-success';
+        successDiv.style.cssText = 'color: var(--success); font-size: 13px; font-weight: 500; margin-top: 14px; text-align: center;';
+        successDiv.textContent = 'Password reset link sent! Check your inbox.';
+        
+        const form = document.querySelector('form');
+        form.appendChild(successDiv);
+      } catch (err) {
+        console.error("Password reset failed:", err);
+        const errDiv = document.createElement('div');
+        errDiv.id = 'login-error';
+        errDiv.style.cssText = 'color: var(--danger); font-size: 13px; font-weight: 500; margin-top: 14px; text-align: center;';
+        errDiv.textContent = err.message || 'Failed to send password reset email.';
+        
+        const form = document.querySelector('form');
+        form.appendChild(errDiv);
+      }
     }
 
     async function handleLogin(e) {

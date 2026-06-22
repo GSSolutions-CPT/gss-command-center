@@ -36,7 +36,18 @@ export default [
         toggleUserDropdown: "readonly",
         toggleAgentStatus: "readonly",
         openTaskModal: "readonly",
-        submitTask: "readonly"
+        submitTask: "readonly",
+        // Browser Globals
+        fetch: "readonly",
+        alert: "readonly",
+        prompt: "readonly",
+        confirm: "readonly",
+        // Page-specific Globals
+        exportAuditPack: "readonly",
+        handleForgotPassword: "readonly",
+        closeTaskModal: "readonly",
+        renderAgentPage: "readonly",
+        AGENT_DETAILS: "readonly"
       }
     },
     rules: {

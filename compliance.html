@@ -22,7 +22,7 @@
             <h1 class="page-title">South African Compliance Framework</h1>
             <p class="page-subtitle">Every regulation that governs Global Security Solutions — actively monitored by Closer & Callie.</p>
           </div>
-          <button class="btn btn-primary"><i class="fa-solid fa-file-export"></i> Export Audit Pack</button>
+          <button class="btn btn-primary" onclick="exportAuditPack()"><i class="fa-solid fa-file-export"></i> Export Audit Pack</button>
         </div>
 
         <!-- Summary strip -->
@@ -101,16 +101,18 @@
   <script>
     renderLayout('compliance');
 
+    let complianceRecords = [];
+
     async function initPage() {
       if (typeof db === 'undefined') return;
 
       try {
         const snap = await db.collection('compliance').get();
-        const records = snap.docs.map(doc => doc.data());
+        complianceRecords = snap.docs.map(doc => doc.data());
 
-        const total = records.length;
-        const compliant = records.filter(r => r.status === 'compliant').length;
-        const action = records.filter(r => r.status === 'action').length;
+        const total = complianceRecords.length;
+        const compliant = complianceRecords.filter(r => r.status === 'compliant').length;
+        const action = complianceRecords.filter(r => r.status === 'action').length;
         const pct = total > 0 ? Math.round((compliant / total) * 100) : 0;
 
         document.getElementById('kpi-compliant-count').textContent = `${compliant} / ${total}`;
@@ -118,13 +120,13 @@
         document.getElementById('kpi-action-count').textContent = action;
         
         if (action > 0) {
-          const actionItems = records.filter(r => r.status === 'action');
+          const actionItems = complianceRecords.filter(r => r.status === 'action');
           document.getElementById('kpi-action-desc').innerHTML = `<i class="fa-regular fa-calendar"></i> Action needed on ${actionItems[0].name}`;
         } else {
           document.getElementById('kpi-action-desc').innerHTML = `<i class="fa-regular fa-calendar"></i> All compliant`;
         }
 
-        document.getElementById('compliance-grid').innerHTML = records.map(c => `
+        document.getElementById('compliance-grid').innerHTML = complianceRecords.map(c => `
           <div class="compliance-card ${c.status === 'action' ? 'action' : ''}">
             <div class="compliance-head">
               <div>
@@ -157,6 +159,35 @@
       } catch (err) {
         console.error("Error loading compliance documents:", err);
       }
+    }
+
+    function exportAuditPack() {
+      if (complianceRecords.length === 0) {
+        showToast("✗ No compliance data loaded to export.");
+        return;
+      }
+
+      // Generate CSV content
+      const headers = ["Regulation", "Subtitle", "Status", "How GSS Complies", "Next Action / Audit"];
+      const rows = complianceRecords.map(r => [
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${r.sub.replace(/"/g, '""')}"`,
+        `"${r.status === 'compliant' ? 'Compliant' : 'Action Needed'}"`,
+        `"${r.gss.replace(/"/g, '""')}"`,
+        `"${r.next.replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," 
+        + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `GSS_Compliance_Audit_Pack_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("✓ Audit Pack CSV downloaded!");
     }
   </script>
 </body>

@@ -221,28 +221,59 @@ async function submitTask(e) {
     const cardInput = document.getElementById('task-input');
     if (cardInput) cardInput.value = '';
 
-    // Auto-simulate task completion / progress after 6 seconds for high-fidelity interactive feel!
-    setTimeout(async () => {
-      try {
-        await db.collection('tasks').doc(taskRef.id).update({ status: 'completed' });
-        
-        await db.collection('activities').add({
-          agent: AGENT_SLUG,
-          icon: 'fa-circle-check',
-          text: `<strong>${agentName}</strong> completed task: "${taskText.slice(0, 60)}..." successfully.`,
-          timestamp: new Date()
-        });
+    // Call the /api/dispatch serverless function for real LLM response
+    try {
+      const dispatchRes = await fetch('/api/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent: agentName, task: taskText, priority: priority })
+      });
+      const dispatchData = await dispatchRes.json();
 
-        await db.collection('notifications').add({
-          agent: AGENT_SLUG,
-          text: `<strong>${agentName}</strong>: Completed task successfully.`,
-          timestamp: new Date(),
-          unread: true
-        });
-      } catch (err) {
-        console.error("Simulation error:", err);
-      }
-    }, 6000);
+      await db.collection('tasks').doc(taskRef.id).update({
+        status: 'completed',
+        llmResponse: dispatchData.response || null,
+        llmStatus: dispatchData.status || 'unknown'
+      });
+
+      const responsePreview = dispatchData.response ? dispatchData.response.slice(0, 80) + '...' : 'Task processed.';
+
+      await db.collection('activities').add({
+        agent: AGENT_SLUG,
+        icon: 'fa-circle-check',
+        text: `<strong>${agentName}</strong> completed task: "${responsePreview}"`,
+        timestamp: new Date()
+      });
+
+      await db.collection('notifications').add({
+        agent: AGENT_SLUG,
+        text: `<strong>${agentName}</strong>: Task completed — ${dispatchData.status === 'simulated' ? 'demo mode' : 'live response'}.`,
+        timestamp: new Date(),
+        unread: true
+      });
+    } catch (dispatchErr) {
+      console.warn("LLM dispatch unavailable, falling back to simulation:", dispatchErr);
+      // Fallback: simulate completion after 6 seconds
+      setTimeout(async () => {
+        try {
+          await db.collection('tasks').doc(taskRef.id).update({ status: 'completed' });
+          await db.collection('activities').add({
+            agent: AGENT_SLUG,
+            icon: 'fa-circle-check',
+            text: `<strong>${agentName}</strong> completed task: "${taskText.slice(0, 60)}..." successfully.`,
+            timestamp: new Date()
+          });
+          await db.collection('notifications').add({
+            agent: AGENT_SLUG,
+            text: `<strong>${agentName}</strong>: Completed task successfully.`,
+            timestamp: new Date(),
+            unread: true
+          });
+        } catch (err) {
+          console.error("Simulation error:", err);
+        }
+      }, 6000);
+    }
 
   } catch (err) {
     console.error("Error dispatching task:", err);
