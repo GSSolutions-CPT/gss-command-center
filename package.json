@@ -1,17 +1,21 @@
 {
-  "name": "agent",
+  "name": "gss-command-center",
   "version": "1.0.0",
-  "description": "A premium internal multi-page dashboard for **Kyle Cass**, Owner & Founder of **Global Security Solutions** (Durbanville, Cape Town). This is Kyle's command center for his six AI agents — Callie, Ranker, Devon, Closer, Pixel, and Nexus Prime.",
-  "main": "index.js",
+  "description": "A premium internal multi-page dashboard for Kyle Cass, Owner & Founder of Global Security Solutions (Durbanville, Cape Town). This is Kyle's command center for his six AI agents — Callie, Ranker, Devon, Closer, Pixel, and Nexus Prime.",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npx serve .",
+    "build": "echo 'Static site - no build step required'",
+    "lint": "eslint js/",
+    "vercel-build": "echo 'Static site deployment'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "keywords": ["dashboard", "firebase", "ai-agents", "gss"],
+  "author": "Kyle Cass <kyle@globalsecuritysolutions.co.za>",
+  "license": "UNLICENSED",
+  "private": true,
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.5.0"
+    "eslint": "^10.5.0",
+    "serve": "^14.2.4"
   }
 }
