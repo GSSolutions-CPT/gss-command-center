@@ -43,10 +43,14 @@ export default [
         alert: "readonly",
         prompt: "readonly",
         confirm: "readonly",
+        navigator: "readonly",
         // Page-specific Globals
         exportAuditPack: "readonly",
         handleForgotPassword: "readonly",
         closeTaskModal: "readonly",
+        openTaskOutputModal: "readonly",
+        closeTaskOutputModal: "readonly",
+        copyTaskOutput: "readonly",
         renderAgentPage: "readonly",
         AGENT_DETAILS: "readonly"
       }

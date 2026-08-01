@@ -113,12 +113,16 @@ async function renderAgentPage(slug) {
         activityEl.innerHTML = `<div class="activity-feed">` + snapshot.docs.map(doc => {
           const ev = doc.data();
           const timeStr = formatRelativeTime(ev.timestamp);
+          const docId = doc.id;
           return `
-            <div class="activity-item">
+            <div class="activity-item" style="cursor:pointer;" onclick="openTaskOutputModal('${docId}', '${slug}')">
               <div class="activity-icon" style="background:${colorMap[slug] || '#1A3A5C'};"><i class="fa-solid ${ev.icon || 'fa-info'}"></i></div>
               <div class="activity-body">
                 <div class="activity-text">${ev.text}</div>
-                <div class="activity-meta"><i class="fa-regular fa-clock"></i> ${timeStr}</div>
+                <div class="activity-meta" style="display:flex;justify-space-between;align-items:center;margin-top:4px;">
+                  <span><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+                  <span style="margin-left:auto;color:var(--electric);font-weight:600;font-size:11px;">View Output <i class="fa-solid fa-up-right-from-square" style="font-size:9px;"></i></span>
+                </div>
               </div>
             </div>`;
         }).join('') + `</div>`;
@@ -308,6 +312,8 @@ async function submitTask(e) {
           agent: AGENT_SLUG,
           icon: 'fa-circle-check',
           text: `<strong>${agentName}</strong> completed task: "${previewText}"`,
+          llmResponse: responseText,
+          taskPrompt: taskText,
           timestamp: new Date()
         });
 
@@ -331,3 +337,74 @@ async function submitTask(e) {
     showToast('✗ Failed to dispatch task');
   }
 }
+
+async function openTaskOutputModal(docId, slug) {
+  if (typeof db === 'undefined') return;
+  try {
+    const doc = await db.collection('activities').doc(docId).get();
+    if (!doc.exists) return;
+    const data = doc.data();
+    
+    let modal = document.getElementById('output-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'output-modal';
+      modal.className = 'modal-backdrop';
+      modal.onclick = function(e) { if (e.target === this) closeTaskOutputModal(); };
+      document.body.appendChild(modal);
+    }
+    
+    const agentSlug = slug || data.agent || AGENT_SLUG;
+    const agentName = AGENT_DETAILS[agentSlug]?.name || agentSlug;
+    const timeStr = formatRelativeTime(data.timestamp);
+    const fullText = data.llmResponse || data.text || 'No detailed response text available.';
+    const promptText = data.taskPrompt || '';
+
+    modal.innerHTML = `
+      <div class="modal" style="max-width:720px;width:92%;max-height:85vh;display:flex;flex-direction:column;border:1px solid var(--border-light);box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border-light);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="agent-avatar ${agentSlug}" style="width:38px;height:38px;border-radius:10px;font-size:14px;display:grid;place-items:center;">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+              <h3 style="margin:0;font-size:16px;color:var(--navy);font-weight:700;">${agentName} Task Output</h3>
+              <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">Dispatched by Kyle Cass · ${timeStr}</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="closeTaskOutputModal()" style="font-size:16px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding-right:6px;">
+          ${promptText ? `
+          <div style="background:var(--bg);padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:12px;border:1px solid var(--border-light);">
+            <div style="font-size:10.5px;font-weight:700;color:var(--electric);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Original Task Request</div>
+            <div style="color:var(--navy);font-weight:500;">"${promptText}"</div>
+          </div>` : ''}
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Live Reasoning Output</div>
+          <div style="background:#0f172a;color:#f8fafc;padding:16px;border-radius:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word;border:1px solid rgba(255,255,255,0.1);" id="output-modal-text">${fullText}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);">
+          <span class="badge-pill badge-success"><i class="fa-solid fa-bolt"></i> Engine: NVIDIA GLM-5.2</span>
+          <button class="btn btn-primary btn-sm" onclick="copyTaskOutput()"><i class="fa-regular fa-copy"></i> Copy Full Output</button>
+        </div>
+      </div>
+    `;
+    modal.classList.add('open');
+  } catch (err) {
+    console.error("Error opening output modal:", err);
+  }
+}
+
+function closeTaskOutputModal() {
+  const modal = document.getElementById('output-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function copyTaskOutput() {
+  const textEl = document.getElementById('output-modal-text');
+  if (textEl) {
+    navigator.clipboard.writeText(textEl.textContent);
+    showToast('✓ Response copied to clipboard!');
+  }
+}
+
