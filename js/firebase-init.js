@@ -10,13 +10,37 @@ const firebaseConfig = {
   measurementId: "G-ZPMK3KDCMQ"
 };
 
-// Initialize Firebase if it's available (i.e. scripts loaded via CDN)
-if (typeof firebase !== 'undefined') {
-  firebase.initializeApp(firebaseConfig);
-  window.auth = firebase.auth();
-  window.db = firebase.firestore();
-} else {
-  console.error("Firebase SDK not loaded. Make sure the CDN scripts are included in the HTML head.");
+// Initialize Firebase with auto-retry if CDN script loading is delayed
+function initFirebaseApp() {
+  if (typeof firebase !== 'undefined') {
+    try {
+      if (!firebase.apps || !firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      if (typeof firebase.auth === 'function' && !window.auth) {
+        window.auth = firebase.auth();
+      }
+      if (typeof firebase.firestore === 'function' && !window.db) {
+        window.db = firebase.firestore();
+      }
+      return true;
+    } catch (e) {
+      console.warn("Firebase initialization warning:", e);
+    }
+  }
+  return false;
+}
+
+initFirebaseApp();
+
+// Retry initialization if scripts load asynchronously or over slow connections
+if (!window.auth || !window.db) {
+  const checkInterval = setInterval(() => {
+    if (initFirebaseApp()) {
+      clearInterval(checkInterval);
+    }
+  }, 100);
+  setTimeout(() => clearInterval(checkInterval), 5000);
 }
 
 // Self-Seeding Database Utility
