@@ -26,8 +26,9 @@
             <h1 class="page-title">Welcome back, Kyle 👋</h1>
             <p class="page-subtitle" id="today-date"></p>
           </div>
-          <div style="display:flex;gap:10px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="btn btn-outline"><i class="fa-regular fa-calendar"></i> Today</button>
+            <button class="btn btn-outline" onclick="openLeadHunterModal()" style="border-color:var(--electric);color:var(--electric);"><i class="fa-solid fa-crosshairs"></i> Hunt Leads</button>
             <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Task</button>
           </div>
         </div>
@@ -174,6 +175,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="js/firebase-init.js"></script>
   <script src="js/shared.js"></script>
+  <script src="js/agent-data.js"></script>
   <script>
     renderLayout('dashboard');
     document.getElementById('today-date').textContent = formatDate() + ' · Durbanville, Cape Town';
