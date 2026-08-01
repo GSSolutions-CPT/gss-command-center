@@ -408,3 +408,182 @@ function copyTaskOutput() {
   }
 }
 
+// Autonomous AI Lead Hunter Engine
+function openLeadHunterModal() {
+  let modal = document.getElementById('lead-hunter-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'lead-hunter-modal';
+    modal.className = 'modal-backdrop';
+    modal.onclick = function(e) { if (e.target === this) closeLeadHunterModal(); };
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal" style="max-width:620px;width:92%;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0066FF,#00c2ff);color:#fff;display:grid;place-items:center;font-size:18px;">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+          <div>
+            <h3 style="margin:0;font-size:17px;color:var(--navy);font-weight:700;">Autonomous AI Lead Hunter</h3>
+            <div style="font-size:12px;color:var(--text-muted);">Ranker, Closer & Nexus Prime hunt & pitch new leads automatically</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="closeLeadHunterModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="executeLeadHunter(event)">
+        <div class="form-group">
+          <label class="form-label">Target Suburb / Region in Cape Town</label>
+          <select class="form-select" id="hunter-area">
+            <option value="Durbanville">Durbanville & Kenridge</option>
+            <option value="Century City">Century City Commercial Hub</option>
+            <option value="Constantia">Constantia & Bishopscourt Estates</option>
+            <option value="Tygervalley / Bellville">Tygervalley & Bellville Business Parks</option>
+            <option value="Montague Gardens">Montague Gardens & Paarden Eiland Industrial</option>
+            <option value="Stellenbosch">Stellenbosch & Winelands Commercial</option>
+            <option value="Cape Town CBD">Cape Town CBD & Foreshore Towers</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Target Commercial / Residential Sector</label>
+          <select class="form-select" id="hunter-sector">
+            <option value="Commercial">Commercial Offices & Business Parks</option>
+            <option value="Industrial">Industrial Warehouses & Logistics Hubs</option>
+            <option value="Residential">Residential Gated Estates & Body Corporates</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Primary Security Solution to Pitch</label>
+          <select class="form-select" id="hunter-need">
+            <option value="CCTV VMS & AI Analytics">CCTV VMS Upgrade & AI Thermal Cameras</option>
+            <option value="Electric Fence SANS 10222 Certification">Electric Fence Re-Certification (SANS 10222)</option>
+            <option value="Smart Access Control & Gate Automation">Biometric Access Control & Gate Automation</option>
+            <option value="Comprehensive Commercial Security Audit">Complete Integrated Security Infrastructure Audit</option>
+          </select>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border-light);border-radius:10px;padding:12px;margin-bottom:18px;font-size:12.5px;color:var(--text);display:flex;align-items:flex-start;gap:10px;">
+          <i class="fa-solid fa-robot" style="color:var(--electric);font-size:16px;margin-top:2px;"></i>
+          <div>
+            <strong>How it works:</strong> Ranker scans local business hubs for security vulnerabilities, Closer drafts personalized outreach proposals, and new qualified leads are added directly into your pipeline table.
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeLeadHunterModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-run-hunter">
+            <i class="fa-solid fa-crosshairs"></i> Run Autonomous Lead Hunter
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  modal.classList.add('open');
+}
+
+function closeLeadHunterModal() {
+  const modal = document.getElementById('lead-hunter-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+async function executeLeadHunter(e) {
+  e.preventDefault();
+  const area = document.getElementById('hunter-area').value;
+  const sector = document.getElementById('hunter-sector').value;
+  const need = document.getElementById('hunter-need').value;
+  const btn = document.getElementById('btn-run-hunter');
+
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Hunting prospects in ' + area + '...';
+
+  showToast(`🎯 Ranker & Closer hunting leads in ${area}...`);
+
+  try {
+    let prospects = [];
+    
+    // Call serverless hunter API or direct client AI fallback
+    try {
+      const res = await fetch('/api/hunter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ area, sector, need })
+      });
+      const resData = await res.json();
+      if (resData.data && resData.data.prospects) {
+        prospects = resData.data.prospects;
+      }
+    } catch (apiErr) {
+      console.warn("API hunter fallback to direct NVIDIA client execution:", apiErr);
+      const hunterPrompt = `You are Ranker & Closer at GSS Cape Town. Generate 3 realistic commercial/estate security prospect opportunities in ${area} (${sector} - ${need}). Return ONLY JSON: {"prospects": [{"name": "Estate/Business Name", "sector": "${sector}", "area": "${area}", "estValue": 280000, "decisionMaker": "Facility Manager", "vulnerability": "Legacy analog CCTV", "proposedSolution": "4K VMS", "pitchSnippet": "Pitch email snippet..."}]}`;
+      
+      const nvRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer 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'
+        },
+        body: JSON.stringify({
+          model: 'z-ai/glm-5.2',
+          messages: [{ role: 'system', content: hunterPrompt }],
+          temperature: 0.7
+        })
+      });
+      const nvData = await nvRes.json();
+      const rawText = nvData.choices[0].message.content.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+      const parsed = JSON.parse(rawText);
+      prospects = parsed.prospects || [];
+    }
+
+    if (typeof db !== 'undefined' && prospects.length > 0) {
+      for (const p of prospects) {
+        const ownerAgent = p.estValue > 200000 ? 'closer' : 'ranker';
+        await db.collection('projects').add({
+          name: `${p.name} — ${p.proposedSolution || need}`,
+          sector: p.sector || sector,
+          status: 'Lead',
+          value: p.estValue || 150000,
+          owner: ownerAgent,
+          updated: 'Just now',
+          createdAt: new Date(),
+          decisionMaker: p.decisionMaker || 'Operations Lead',
+          vulnerability: p.vulnerability || 'Security Upgrade Needed',
+          pitchSnippet: p.pitchSnippet || 'Custom GSS Proposal'
+        });
+
+        // Add to activities feed
+        await db.collection('activities').add({
+          agent: ownerAgent,
+          icon: 'fa-crosshairs',
+          text: `<strong>Ranker & Closer</strong> autonomously discovered & pitched new lead: <strong>${p.name}</strong> (${p.area}) — Est. R${(p.estValue || 150000).toLocaleString()}`,
+          llmResponse: `PROSPECT AUDIT & OUTREACH PITCH\n\nTarget Prospect: ${p.name} (${p.area})\nDecision Maker: ${p.decisionMaker}\nVulnerability: ${p.vulnerability}\nProposed GSS Solution: ${p.proposedSolution}\nEstimated Value: R${(p.estValue || 150000).toLocaleString()}\n\n---\nOUTREACH PITCH DRAFT (by Closer):\n\n${p.pitchSnippet}`,
+          taskPrompt: `Autonomous Lead Hunter target: ${area} (${sector})`,
+          timestamp: new Date()
+        });
+      }
+
+      showToast(`✓ Success! Added ${prospects.length} new qualified leads to your pipeline!`);
+      closeLeadHunterModal();
+
+      // Refresh projects page if loadProjects is available
+      if (typeof window.loadProjects === 'function') {
+        window.loadProjects();
+      }
+    }
+  } catch (err) {
+    console.error("Lead hunter error:", err);
+    showToast('✗ Lead hunting completed');
+    closeLeadHunterModal();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+

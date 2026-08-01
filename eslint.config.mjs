@@ -53,6 +53,9 @@ export default [
         openTaskOutputModal: "readonly",
         closeTaskOutputModal: "readonly",
         copyTaskOutput: "readonly",
+        openLeadHunterModal: "readonly",
+        closeLeadHunterModal: "readonly",
+        executeLeadHunter: "readonly",
         renderAgentPage: "readonly",
         AGENT_DETAILS: "readonly"
       }
