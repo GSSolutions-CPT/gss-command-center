@@ -9,6 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0066FF">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -54,6 +57,45 @@
             <div class="kpi-label">Active Code Deployments</div>
             <div class="kpi-value">7</div>
             <div class="kpi-change up"><i class="fa-solid fa-arrow-up"></i> 2 deployed today</div>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW -->
+        <div class="grid-2" style="margin: 18px 0;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Revenue Pipeline (6 Months)</div>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <canvas id="revenue-chart" height="220"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Agent Task Volume (7 Days)</div>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <canvas id="tasks-chart" height="220"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 18px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Project Status Breakdown</div>
+            </div>
+            <div class="card-body" style="padding:16px;display:flex;justify-content:center;">
+              <canvas id="status-chart" height="220" style="max-width:300px;"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Organic Traffic Trend (12 Weeks)</div>
+            </div>
+            <div class="card-body" style="padding:16px;">
+              <canvas id="traffic-chart" height="220"></canvas>
+            </div>
           </div>
         </div>
 
@@ -183,6 +225,118 @@
             </div>
           </div>`;
         }).join('') + `</div>`;
+      });
+
+      // --- Chart.js KPI Visualizations ---
+      const chartFont = { family: 'Inter, sans-serif' };
+      const gridColor = getComputedStyle(document.body).getPropertyValue('--border-light').trim() || '#e2e8f0';
+      const textColor = getComputedStyle(document.body).getPropertyValue('--text-muted').trim() || '#94a3b8';
+
+      // 1. Revenue Pipeline Bar Chart
+      new Chart(document.getElementById('revenue-chart'), {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Completed (R)',
+            data: [185000, 210000, 165000, 290000, 340000, 123000],
+            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+            borderRadius: 6
+          }, {
+            label: 'Pipeline (R)',
+            data: [120000, 95000, 180000, 150000, 210000, 720000],
+            backgroundColor: 'rgba(0, 102, 255, 0.5)',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: chartFont, color: textColor, boxWidth: 12, padding: 16 } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: chartFont, color: textColor } },
+            y: { grid: { color: gridColor }, ticks: { font: chartFont, color: textColor, callback: v => 'R' + (v/1000) + 'k' } }
+          }
+        }
+      });
+
+      // 2. Agent Task Volume Line Chart
+      new Chart(document.getElementById('tasks-chart'), {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [
+            { label: 'Callie', data: [12, 15, 11, 14, 18, 6, 8], borderColor: '#06B6D4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+            { label: 'Devon', data: [8, 10, 12, 9, 11, 4, 3], borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+            { label: 'Closer', data: [5, 7, 6, 8, 9, 2, 1], borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.4, pointRadius: 3 },
+            { label: 'Ranker', data: [4, 6, 5, 7, 5, 3, 2], borderColor: '#8B5CF6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.4, pointRadius: 3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: chartFont, color: textColor, boxWidth: 12, padding: 12 } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: chartFont, color: textColor } },
+            y: { grid: { color: gridColor }, ticks: { font: chartFont, color: textColor } }
+          }
+        }
+      });
+
+      // 3. Project Status Doughnut Chart
+      try {
+        const projSnap = await db.collection('projects').get();
+        const projects = projSnap.docs.map(d => d.data());
+        const statusCounts = { Lead: 0, 'Proposal Sent': 0, Active: 0, Completed: 0 };
+        projects.forEach(p => { if (statusCounts.hasOwnProperty(p.status)) statusCounts[p.status]++; });
+
+        new Chart(document.getElementById('status-chart'), {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(statusCounts),
+            datasets: [{
+              data: Object.values(statusCounts),
+              backgroundColor: ['#94a3b8', '#0066FF', '#10B981', '#F59E0B'],
+              borderWidth: 0,
+              spacing: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+              legend: { position: 'bottom', labels: { font: chartFont, color: textColor, boxWidth: 12, padding: 12 } }
+            }
+          }
+        });
+      } catch (e) { console.error('Status chart error:', e); }
+
+      // 4. Organic Traffic Area Chart
+      new Chart(document.getElementById('traffic-chart'), {
+        type: 'line',
+        data: {
+          labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+          datasets: [{
+            label: 'Sessions',
+            data: [820, 940, 890, 1050, 1120, 980, 1200, 1340, 1180, 1420, 1510, 1600],
+            borderColor: '#0066FF',
+            backgroundColor: 'rgba(0, 102, 255, 0.08)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 4,
+            pointBackgroundColor: '#0066FF'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: chartFont, color: textColor } },
+            y: { grid: { color: gridColor }, ticks: { font: chartFont, color: textColor } }
+          }
+        }
       });
     }
   </script>

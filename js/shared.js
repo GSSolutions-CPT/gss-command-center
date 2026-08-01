@@ -415,17 +415,112 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Dynamic User UI update based on Role-Based Access Control
+function updateUserUI() {
+  if (!window.currentUserDoc) return;
+  const user = window.currentUserDoc;
+  
+  // 1. Update topbar user details
+  const nameEl = document.querySelector('.topbar-right .avatar-btn .name');
+  if (nameEl) nameEl.textContent = user.fullName;
+  
+  const avatarEl = document.querySelector('.topbar-right .avatar-btn .avatar');
+  if (avatarEl) {
+    const initials = user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    avatarEl.textContent = initials || '??';
+  }
+
+  // Update welcome message on dashboard
+  const welcomeEl = document.querySelector('.page-header h1.page-title');
+  if (welcomeEl && welcomeEl.textContent.startsWith('Welcome back')) {
+    welcomeEl.textContent = `Welcome back, ${user.fullName.split(' ')[0]} 👋`;
+  }
+  
+  // 2. Enforce Role-Based Access Controls
+  if (user.role === 'viewer') {
+    // Hide or disable write elements
+    // Dashboard: new task button
+    const dashboardNewTaskBtn = document.querySelector('.page-header .btn-primary');
+    if (dashboardNewTaskBtn && (dashboardNewTaskBtn.textContent.includes('New Task') || dashboardNewTaskBtn.textContent.includes('New Lead'))) {
+      dashboardNewTaskBtn.style.display = 'none';
+    }
+    
+    // Disable task textarea and dispatch buttons
+    const taskTextareas = document.querySelectorAll('textarea');
+    taskTextareas.forEach(ta => {
+      ta.disabled = true;
+      ta.placeholder = "Read-only access: Task dispatches are disabled for viewers.";
+    });
+    
+    const dispatchBtns = document.querySelectorAll('button[type="submit"], button.btn-primary');
+    dispatchBtns.forEach(btn => {
+      if (btn.textContent.includes('Dispatch') || btn.textContent.includes('Save') || btn.textContent.includes('New') || btn.textContent.includes('Add') || btn.textContent.includes('Trigger')) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      }
+    });
+
+    // Disable Quick Actions on dashboard
+    const quickActions = document.querySelectorAll('.quick-action');
+    quickActions.forEach(qa => {
+      qa.style.opacity = '0.7';
+      qa.style.pointerEvents = 'none';
+      qa.title = "Action disabled: viewer role";
+    });
+
+    // Disable workflows trigger button
+    const runWorkflowBtns = document.querySelectorAll('.btn-outline');
+    runWorkflowBtns.forEach(btn => {
+      if (btn.textContent.includes('Trigger') || btn.textContent.includes('Run')) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      }
+    });
+  }
+}
+
 // Route Guard and Seeding Coordinator
 if (typeof auth !== 'undefined') {
   auth.onAuthStateChanged(async (user) => {
     const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') || window.location.pathname === '';
     
     if (!user) {
+      window.currentUserDoc = null;
       if (!isLoginPage) {
         const isSubfolder = window.location.pathname.includes('/agents/');
         window.location.href = isSubfolder ? '../index.html' : 'index.html';
       }
     } else {
+      // 1. Fetch user role and details from Firestore
+      try {
+        let userDoc = await db.collection('users').doc(user.email).get();
+        if (!userDoc.exists) {
+          // Seed the user doc
+          const isKyle = user.email === 'kyle@globalsecuritysolutions.co.za';
+          const defaultRole = isKyle ? 'owner' : 'viewer';
+          const nameParts = user.email.split('@')[0].split('.');
+          const fullName = nameParts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+          
+          await db.collection('users').doc(user.email).set({
+            email: user.email,
+            fullName: fullName || user.email,
+            role: defaultRole,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          userDoc = await db.collection('users').doc(user.email).get();
+        }
+        window.currentUserDoc = userDoc.data();
+      } catch (err) {
+        console.error("Error loading user profile:", err);
+        window.currentUserDoc = {
+          email: user.email,
+          fullName: user.email.split('@')[0],
+          role: user.email === 'kyle@globalsecuritysolutions.co.za' ? 'owner' : 'viewer'
+        };
+      }
+
       if (typeof seedDatabaseIfEmpty === 'function') {
         await seedDatabaseIfEmpty();
       }
@@ -437,8 +532,13 @@ if (typeof auth !== 'undefined') {
         // Safe to listen to notifications and load page content
         listenToNotifications();
         if (typeof initPage === 'function') {
-          initPage();
+          await initPage();
         }
+
+        // Apply UI updates and permission checks
+        updateUserUI();
+        setTimeout(updateUserUI, 400);
+        setTimeout(updateUserUI, 1200);
       }
     }
   });

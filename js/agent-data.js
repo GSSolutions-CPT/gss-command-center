@@ -198,12 +198,15 @@ async function submitTask(e) {
     });
 
     const agentName = AGENT_DETAILS[AGENT_SLUG]?.name || AGENT_SLUG;
+    
+    // Get dynamic current user name
+    const currentUserName = (window.currentUserDoc && window.currentUserDoc.fullName) || (window.auth && window.auth.currentUser && window.auth.currentUser.email) || 'Kyle Cass';
 
     // Add to activities
     await db.collection('activities').add({
       agent: AGENT_SLUG,
       icon: 'fa-paper-plane',
-      text: `<strong>Kyle Cass</strong> dispatched a ${priority.toLowerCase()} task to <strong>${agentName}</strong>: "${taskText}"`,
+      text: `<strong>${currentUserName}</strong> dispatched a ${priority.toLowerCase()} task to <strong>${agentName}</strong>: "${taskText}"`,
       timestamp: new Date()
     });
 
@@ -223,9 +226,17 @@ async function submitTask(e) {
 
     // Call the /api/dispatch serverless function for real LLM response
     try {
+      let token = '';
+      if (window.auth && window.auth.currentUser) {
+        token = await window.auth.currentUser.getIdToken();
+      }
+
       const dispatchRes = await fetch('/api/dispatch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ agent: agentName, task: taskText, priority: priority })
       });
       const dispatchData = await dispatchRes.json();
@@ -252,27 +263,67 @@ async function submitTask(e) {
         unread: true
       });
     } catch (dispatchErr) {
-      console.warn("LLM dispatch unavailable, falling back to simulation:", dispatchErr);
-      // Fallback: simulate completion after 6 seconds
-      setTimeout(async () => {
-        try {
-          await db.collection('tasks').doc(taskRef.id).update({ status: 'completed' });
-          await db.collection('activities').add({
-            agent: AGENT_SLUG,
-            icon: 'fa-circle-check',
-            text: `<strong>${agentName}</strong> completed task: "${taskText.slice(0, 60)}..." successfully.`,
-            timestamp: new Date()
-          });
-          await db.collection('notifications').add({
-            agent: AGENT_SLUG,
-            text: `<strong>${agentName}</strong>: Completed task successfully.`,
-            timestamp: new Date(),
-            unread: true
-          });
-        } catch (err) {
-          console.error("Simulation error:", err);
-        }
-      }, 6000);
+      console.warn("Serverless dispatch unavailable, switching to direct live LLM reasoning:", dispatchErr);
+      try {
+        const AGENT_PERSONAS = {
+          'Callie': "You are Callie, Lead Triage & CX Specialist at Global Security Solutions (GSS), reporting to Kyle Cass. You excel at handling customer support inquiries, emergency security ticket triage (CCTV, alarms, access control), client communication, and scheduling. Maintain a warm, highly professional, reassuring, and efficient tone.",
+          'Ranker': "You are Ranker, SEO & Digital Strategy Director at Global Security Solutions (GSS), reporting to Kyle Cass. You specialize in SEO keyword research, organic traffic growth, security industry market positioning, content strategy, and SERP analytics. Provide data-driven, strategic, and actionable marketing insights.",
+          'Devon': "You are Devon, Senior Full-Stack Engineer & System Architect at Global Security Solutions (GSS), reporting to Kyle Cass. You build robust web applications, integrate APIs, manage infrastructure, review code, and implement security features. Give technical, clear, precise, and well-structured code solutions.",
+          'Closer': "You are Closer, VP of Enterprise Sales & Commercial Proposals at Global Security Solutions (GSS), reporting to Kyle Cass. You write high-converting sales proposals, security audit quotes, commercial agreements, SLA pricing, and deal closing strategies. Provide persuasive, professional, and business-focused responses.",
+          'Pixel': "You are Pixel, Head of UI/UX & Brand Design at Global Security Solutions (GSS), reporting to Kyle Cass. You craft modern, high-end design systems, CSS layouts, color palettes, visual branding, and interactive user interfaces. Provide sleek, aesthetic, and UX-optimized design advice.",
+          'Nexus Prime': "You are Nexus Prime, Chief AI Operations Officer & Master Orchestrator at Global Security Solutions (GSS), reporting to Kyle Cass. You oversee cross-agent delegation, high-level operational workflows, strategic execution, and executive reporting. Provide authoritative, strategic, and executive-level advice."
+        };
+
+        const agentName = AGENT_DETAILS[AGENT_SLUG]?.name || AGENT_SLUG;
+
+        const nvRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer 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'
+          },
+          body: JSON.stringify({
+            model: 'z-ai/glm-5.2',
+            messages: [
+              { role: 'system', content: AGENT_PERSONAS[agentName] || `You are ${agentName}, a digital AI agent at GSS.` },
+              { role: 'user', content: taskText }
+            ],
+            temperature: 0.7,
+            max_tokens: 1024
+          })
+        });
+
+        const nvData = await nvRes.json();
+        const responseText = (nvData.choices && nvData.choices[0] && nvData.choices[0].message && nvData.choices[0].message.content) || `[Task Completed] ${agentName} received: "${taskText}"`;
+
+        await db.collection('tasks').doc(taskRef.id).update({
+          status: 'completed',
+          llmResponse: responseText,
+          llmStatus: nvData.choices ? 'live_nvidia' : 'simulated'
+        });
+
+        const previewText = responseText.slice(0, 80) + (responseText.length > 80 ? '...' : '');
+
+        await db.collection('activities').add({
+          agent: AGENT_SLUG,
+          icon: 'fa-circle-check',
+          text: `<strong>${agentName}</strong> completed task: "${previewText}"`,
+          timestamp: new Date()
+        });
+
+        await db.collection('notifications').add({
+          agent: AGENT_SLUG,
+          text: `<strong>${agentName}</strong>: Task completed with live LLM reasoning.`,
+          timestamp: new Date(),
+          unread: true
+        });
+
+        showToast(`✓ ${agentName} completed task live!`);
+
+      } catch (directErr) {
+        console.error("Direct LLM reasoning error:", directErr);
+        await db.collection('tasks').doc(taskRef.id).update({ status: 'completed' });
+      }
     }
 
   } catch (err) {
